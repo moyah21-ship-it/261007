@@ -1,0 +1,98 @@
+ABC라이프케어 랜딩 페이지 — 이미지 생성 프롬프트
+==================================================
+
+[사용 방법]
+1. 아래 각 항목의 "프롬프트" 블록을 그대로 복사해 이미지 생성 AI(Midjourney, DALL·E, Imagen, Firefly 등)에 붙여넣으세요.
+2. 생성한 이미지를 index.html과 같은 위치의 images 폴더에 "파일명" 그대로 저장하면 페이지에 자동으로 표시됩니다.
+   (예: 홈페이지/images/hero.jpg)
+3. 이미지를 넣기 전에는 파스텔 플레이스홀더가 대신 보입니다.
+4. Midjourney 사용 시 프롬프트 끝에 비율 옵션(예: --ar 4:3)을 붙이세요. 다른 도구는 비율 설정 메뉴에서 지정하면 됩니다.
+
+공통 스타일 키워드 (모든 이미지 톤 통일용)
+soft pastel palette of mint green, peach, lavender and butter yellow, minimal, clean, airy, lots of white space, gentle natural light, warm and calm mood
+
+
+--------------------------------------------------
+① 메인(히어로) 이미지
+파일명: images/hero.jpg
+권장 비율: 4:3 (1600 x 1360px 이상)
+위치: 페이지 최상단 오른쪽
+--------------------------------------------------
+프롬프트 (영문):
+A warm, calm consultation scene in a bright minimal room, a friendly Korean female counselor in her 40s talking with a Korean middle-aged couple at a light wooden table, soft smiles, a notebook and a cup of tea on the table, soft pastel palette of mint green, peach and lavender, clean white walls, gentle natural window light, lots of negative space, editorial lifestyle photography, shallow depth of field, no text, no logo
+
+프롬프트 (한글):
+밝고 미니멀한 공간에서 40대 한국인 여성 상담사가 중년 한국인 부부와 밝은 원목 테이블에 앉아 편안하게 대화하는 장면, 부드러운 미소, 테이블 위 노트와 차 한 잔, 민트·피치·라벤더 파스텔 톤, 깨끗한 흰 벽, 창으로 들어오는 부드러운 자연광, 여백이 많은 구도, 라이프스타일 화보 사진, 얕은 심도, 텍스트·로고 없음
+
+
+--------------------------------------------------
+② 서비스 — 건강
+파일명: images/service-health.jpg
+권장 비율: 1:1 (800 x 800px 이상)
+위치: 서비스 섹션 첫 번째 카드 (피치 배경)
+--------------------------------------------------
+프롬프트 (영문):
+Minimal flat 3D illustration of health and wellness, a soft heart shape with a small stethoscope, a green leaf and a glass of water, rounded clay-like shapes, soft pastel peach and mint color palette, centered composition on a plain light peach background, soft shadows, cute and calm, clean, no text
+
+프롬프트 (한글):
+건강과 웰빙을 표현한 미니멀 3D 일러스트, 부드러운 하트와 작은 청진기, 초록 잎사귀와 물 한 잔, 둥글둥글한 클레이 질감, 파스텔 피치·민트 색감, 연한 피치색 단색 배경 중앙 배치, 부드러운 그림자, 귀엽고 차분한 느낌, 텍스트 없음
+
+
+--------------------------------------------------
+③ 서비스 — 재무
+파일명: images/service-finance.jpg
+권장 비율: 1:1 (800 x 800px 이상)
+위치: 서비스 섹션 두 번째 카드 (하늘색 배경)
+--------------------------------------------------
+프롬프트 (영문):
+Minimal flat 3D illustration of personal finance, a cute piggy bank with a few stacked coins and a small upward growing bar chart, rounded clay-like shapes, soft pastel sky blue and mint color palette, centered composition on a plain light sky blue background, soft shadows, calm and trustworthy, clean, no text, no currency symbols
+
+프롬프트 (한글):
+개인 재무를 표현한 미니멀 3D 일러스트, 귀여운 돼지저금통과 쌓인 동전 몇 개, 작게 상승하는 막대그래프, 둥글둥글한 클레이 질감, 파스텔 하늘색·민트 색감, 연한 하늘색 단색 배경 중앙 배치, 부드러운 그림자, 차분하고 신뢰감 있는 느낌, 텍스트·화폐 기호 없음
+
+
+--------------------------------------------------
+④ 서비스 — 가족
+파일명: images/service-family.jpg
+권장 비율: 1:1 (800 x 800px 이상)
+위치: 서비스 섹션 세 번째 카드 (라벤더 배경)
+--------------------------------------------------
+프롬프트 (영문):
+Minimal flat 3D illustration of family, a small cozy house with three rounded figures of different sizes (parent, child, grandparent) holding hands in front of it, rounded clay-like shapes, soft pastel lavender and peach color palette, centered composition on a plain light lavender background, soft shadows, warm and loving mood, clean, no text
+
+프롬프트 (한글):
+가족을 표현한 미니멀 3D 일러스트, 아늑한 작은 집 앞에서 손을 잡은 크기가 다른 세 인물(부모, 아이, 조부모), 둥글둥글한 클레이 질감, 파스텔 라벤더·피치 색감, 연한 라벤더색 단색 배경 중앙 배치, 부드러운 그림자, 따뜻하고 다정한 분위기, 텍스트 없음
+
+
+--------------------------------------------------
+⑤ 서비스 — 은퇴
+파일명: images/service-retirement.jpg
+권장 비율: 1:1 (800 x 800px 이상)
+위치: 서비스 섹션 네 번째 카드 (버터옐로 배경)
+--------------------------------------------------
+프롬프트 (영문):
+Minimal flat 3D illustration of a happy retirement, a comfortable armchair beside a potted plant, a sun hat and a small travel suitcase, a soft rising sun in the background, rounded clay-like shapes, soft pastel butter yellow and mint color palette, centered composition on a plain light butter yellow background, soft shadows, peaceful and hopeful mood, clean, no text
+
+프롬프트 (한글):
+행복한 은퇴를 표현한 미니멀 3D 일러스트, 화분 옆 편안한 안락의자, 밀짚모자와 작은 여행 가방, 뒤편에 부드럽게 떠오르는 해, 둥글둥글한 클레이 질감, 파스텔 버터옐로·민트 색감, 연한 노란색 단색 배경 중앙 배치, 부드러운 그림자, 평화롭고 희망찬 분위기, 텍스트 없음
+
+
+--------------------------------------------------
+⑥ 상담 신청 보조 이미지
+파일명: images/apply.jpg
+권장 비율: 4:3 (1200 x 900px 이상)
+위치: 상담 신청 폼 왼쪽 (데스크톱에서만 표시)
+--------------------------------------------------
+프롬프트 (영문):
+A cozy, minimal counseling space with two soft armchairs facing each other, a small round side table with a cup of tea and a notebook, a potted green plant, pastel mint and cream colored walls, gentle afternoon sunlight through sheer curtains, calm and welcoming atmosphere, interior photography, lots of negative space, no people, no text
+
+프롬프트 (한글):
+마주 보는 푹신한 안락의자 두 개가 놓인 아늑하고 미니멀한 상담 공간, 차 한 잔과 노트가 놓인 작은 원형 사이드 테이블, 초록 화분, 파스텔 민트·크림색 벽, 얇은 커튼 사이로 들어오는 오후 햇살, 차분하고 환영받는 분위기, 인테리어 사진, 여백이 많은 구도, 사람 없음, 텍스트 없음
+
+
+==================================================
+[팁]
+- 서비스 카드 4장(②~⑤)은 같은 도구·같은 설정으로 연달아 생성하면 스타일이 통일됩니다.
+  Midjourney라면 첫 이미지를 만든 뒤 --sref(스타일 참조)로 나머지에 같은 스타일을 적용해 보세요.
+- 브랜드 컬러를 바꿨다면 프롬프트 속 색상 단어(mint, peach, lavender 등)도 함께 바꿔주세요.
+- 실제 인물 사진 대신 일러스트로 통일하고 싶다면 ①·⑥의 "photography"를 "minimal flat 3D illustration"으로 바꾸세요.
