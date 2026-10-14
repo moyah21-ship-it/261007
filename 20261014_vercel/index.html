@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>의사록 자동작성 PoC</title>
+<meta name="description" content="금융소비자보호위원회 의사록 자동작성 PoC — 웹앱 데모·양식 샘플·시스템 아키텍처 (교육용 가상 데이터).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --ink:#141b26; --muted:#5a6678; --line:#e0e5ee;
+    --accent:#1f4e8c; --accent-2:#2e74c9; --accent-soft:#e8f0fb;
+    --mono:"JetBrains Mono",ui-monospace,monospace; --sans:"Noto Sans KR",system-ui,sans-serif;
+    --shadow:0 1px 2px rgba(20,30,50,.05),0 10px 34px rgba(20,30,50,.07);
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0b1018; --panel:#141c28; --ink:#e8edf4; --muted:#93a0b2; --line:#242f3f;
+    --accent:#79a8e8; --accent-2:#5c93e0; --accent-soft:#16233a; color-scheme:dark;
+  }}
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+  .wrap{max-width:860px;margin:0 auto;padding:0 18px}
+  header{background:linear-gradient(160deg,var(--accent) 0%,#15325c 100%);color:#fff}
+  :root:not([data-theme="light"]) header{background:linear-gradient(160deg,#14263f 0%,#0d1824 100%)}
+  .hero{max-width:860px;margin:0 auto;padding:40px 18px 34px}
+  .eyebrow{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:#adc7ec;font-weight:700}
+  h1{font-weight:900;font-size:clamp(24px,5vw,38px);margin:8px 0 8px;letter-spacing:-.02em;color:#fff;text-wrap:balance}
+  .hero p{color:#cfdef2;font-size:14.5px;max-width:60ch;margin:0}
+  .flag{display:inline-block;margin-top:16px;font-size:11.5px;font-weight:600;background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.24);color:#eaf2ff;padding:4px 11px;border-radius:999px}
+  main{padding:30px 0 50px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  a.card{display:flex;flex-direction:column;gap:7px;text-decoration:none;color:inherit;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px;padding:20px 18px;box-shadow:var(--shadow);
+    transition:transform .12s ease,border-color .12s ease}
+  a.card:hover{transform:translateY(-3px);border-color:var(--accent-2)}
+  .card .ico{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);color:var(--accent-2);
+    display:grid;place-items:center;font-size:19px;font-weight:900}
+  .card h2{font-size:16px;margin:6px 0 0;font-weight:700}
+  .card p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.55}
+  .card .go{margin-top:auto;font-family:var(--mono);font-size:11.5px;color:var(--accent-2);font-weight:500}
+  footer{border-top:1px solid var(--line);padding:20px 0 30px;color:var(--muted);font-size:11.5px;text-align:center;line-height:1.7}
+  .src{font-family:var(--mono)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <div class="eyebrow">금융소비자보호위원회 · 의사록 자동작성 PoC</div>
+    <h1>의사록 자동작성 — 데모 허브</h1>
+    <p>녹취 텍스트에서 안건별 내용을 추출하고, 업무규칙으로 검증한 뒤 담당자 확정을 거쳐 공식 양식의 의사록을 생성하는 PoC입니다. 아래에서 웹앱 데모·양식 샘플·시스템 아키텍처를 확인하세요.</p>
+    <span class="flag">교육용 가상(더미) 데이터 · 실제 회사·인물과 무관</span>
+  </div>
+</header>
+<main class="wrap">
+  <div class="grid">
+    <a class="card" href="app.html">
+      <span class="ico">▶</span>
+      <h2>의사록 자동작성 웹앱</h2>
+      <p>① 회의 개요 · ② AI 추출 · ③ 규칙 검증 · ④ 검토·출력 · ⑤ 화자 매핑. 실제 Streamlit 앱의 5탭 흐름을 그대로 재현한 인터랙티브 데모.</p>
+      <span class="go">열기 → /app</span>
+    </a>
+    <a class="card" href="sample.html">
+      <span class="ico">▤</span>
+      <h2>의사록 양식 더미 샘플</h2>
+      <p>공식 회의록 양식(참석표·심의의결·서면의결표·보고사항·서명란)에 가상 더미 데이터를 채운 완성 문서 샘플.</p>
+      <span class="go">열기 → /sample</span>
+    </a>
+    <a class="card" href="architecture.html">
+      <span class="ico">◈</span>
+      <h2>시스템 아키텍처</h2>
+      <p>처리 파이프라인(입력→추출→검증→확정→.docx), 핵심 모듈, 설계 결정(Q1~Q13), 작업 범위를 한 페이지로.</p>
+      <span class="go">열기 → /architecture</span>
+    </a>
+  </div>
+</main>
+<footer class="wrap">
+  소스: <span class="src">github.com/moyah21-ship-it/261007 · 20261014_vercel</span><br>
+  모든 데이터·인물·수치는 가상이며 실제 회사·위원회와 무관합니다. 실제 운영 앱(Streamlit)은 사내 폐쇄망에서 구동합니다.
+</footer>
+</body>
+</html>

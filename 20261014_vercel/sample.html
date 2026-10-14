@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>금소위 의사록 양식</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+  /* Layout: an A4 "paper" sheet of official minutes centered on a neutral desk ground */
+  :root{
+    --desk:#e9ebef; --paper:#ffffff; --ink:#1b1f27; --sub:#5c6472;
+    --rule:#c9cfd9; --rule-strong:#9aa3b2; --accent:#1f3a63; --accent-soft:#eaf0f8;
+    --head-fill:#eef2f8; --warn:#9a2d1c; --tag:#edf1f7;
+    --serif:"Noto Serif KR",serif; --sans:"Noto Sans KR",system-ui,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --desk:#0d1119; --paper:#f4f3ee; --ink:#1b1f27; --sub:#5c6472;
+    --rule:#c9cfd9; --rule-strong:#9aa3b2; --accent:#20406e; --accent-soft:#e7eefa;
+    --head-fill:#eef2f8; --warn:#9a2d1c; --tag:#edf1f7; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --desk:#0d1119; --paper:#f4f3ee; --ink:#1b1f27; --sub:#5c6472;
+    --rule:#c9cfd9; --rule-strong:#9aa3b2; --accent:#20406e; --accent-soft:#e7eefa;
+    --head-fill:#eef2f8; --warn:#9a2d1c; --tag:#edf1f7; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--desk);color:var(--ink);font-family:var(--serif);line-height:1.5}
+  .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:rgba(20,26,38,.92);
+    color:#eef2f8;font-family:var(--sans);backdrop-filter:blur(6px)}
+  .bar-in{max-width:900px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;
+    padding:10px 16px;flex-wrap:wrap}
+  .bar .t{font-size:13px;font-weight:500;letter-spacing:.02em;min-width:0}
+  .bar .t b{font-weight:700}
+  .bar .right{display:flex;gap:8px;align-items:center}
+  .bar .flag{font-size:11px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);
+    padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .bar button{font:inherit;font-size:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+    color:#fff;padding:5px 11px;border-radius:999px;cursor:pointer}
+  .bar button:hover{background:rgba(255,255,255,.22)}
+
+  .sheetwrap{padding:22px 16px 60px}
+  .sheet{max-width:820px;margin:0 auto;background:var(--paper);color:var(--ink);position:relative;
+    padding:clamp(26px,5vw,64px) clamp(22px,5vw,60px);
+    box-shadow:0 1px 2px rgba(10,20,40,.15),0 18px 50px rgba(10,20,40,.22);
+    border-radius:2px;overflow:hidden}
+  .wm{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center}
+  .wm span{font-family:var(--sans);font-weight:700;font-size:clamp(34px,9vw,80px);color:rgba(31,58,99,.06);
+    transform:rotate(-24deg);letter-spacing:.1em;white-space:nowrap}
+
+  .company{text-align:center;font-size:clamp(20px,3.6vw,27px);font-weight:700;letter-spacing:.42em;
+    padding-left:.42em;margin:0 0 14px;text-wrap:balance;position:relative}
+  .title{text-align:center;font-weight:700;font-size:clamp(15px,2.6vw,19px);
+    border:1.5px solid var(--accent);border-radius:3px;padding:9px 14px;margin:0 auto 18px;max-width:560px;position:relative}
+  .opening{text-align:center;font-size:14.5px;line-height:1.75;margin:0 auto 16px;max-width:60ch;position:relative}
+  .count{text-align:center;font-size:14.5px;line-height:1.9;margin-bottom:4px;position:relative}
+  .chair{text-align:center;font-weight:700;font-size:14.5px;margin:10px 0 16px;position:relative}
+
+  table{border-collapse:collapse;width:100%;position:relative}
+  .attend{font-family:var(--serif);font-size:13.5px;margin-bottom:18px;border:1px solid var(--rule-strong)}
+  .attend th,.attend td{border:1px solid var(--rule-strong);padding:8px 11px;vertical-align:middle;text-align:left}
+  .attend th{background:var(--head-fill);width:76px;text-align:center;font-weight:700;white-space:nowrap}
+  .attend td{line-height:1.7}
+
+  p.body{font-size:14px;line-height:1.85;margin:0 0 9px;text-align:justify;word-break:keep-all;position:relative}
+  .decl{font-size:14px;line-height:1.85;margin:16px 0 4px;text-align:justify;word-break:keep-all;position:relative}
+
+  h2.sec{font-size:17px;font-weight:700;margin:30px 0 6px;letter-spacing:.02em;position:relative}
+  h2.sec:first-of-type{margin-top:22px}
+  .ref{text-align:center;color:var(--sub);font-size:13px;margin:10px 0 14px;position:relative}
+
+  .decision{border-top:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong);
+    text-align:center;font-weight:700;font-size:13.5px;line-height:1.7;padding:9px 8px;margin:14px 0 18px;
+    background:var(--accent-soft);position:relative}
+  .decision .tag{color:var(--warn)}
+
+  .votetbl{max-width:560px;margin:14px auto 18px;font-size:13.5px;border:1px solid var(--rule-strong)}
+  .votetbl th,.votetbl td{border:1px solid var(--rule-strong);padding:7px 10px;text-align:center}
+  .votetbl th{background:var(--head-fill);font-weight:700}
+  .haechok{color:var(--warn);font-weight:700}
+
+  .resolve{margin:6px 0 2px;position:relative}
+  .resolve .h{font-size:14px;font-weight:700;margin:10px 0 2px}
+  .resolve .s{font-size:13.5px;color:var(--sub);margin:0 0 4px 16px}
+
+  .closing{font-size:14px;line-height:1.85;margin:18px 0 8px;text-align:justify;word-break:keep-all;position:relative}
+  .signdate{text-align:right;font-size:14px;line-height:1.9;margin-top:22px;position:relative}
+  .signdate b{font-weight:700}
+
+  .sign{margin-top:16px;font-size:13.5px;position:relative}
+  .sign .grp{font-weight:700;margin-bottom:6px}
+  .signrow{display:grid;grid-template-columns:52px 1fr auto;gap:6px 14px;align-items:baseline;
+    padding:4px 0;max-width:560px;margin-left:8px}
+  .signrow .role-k{color:var(--sub);font-weight:500}
+  .signrow .nm{font-weight:700;letter-spacing:.28em;text-align:right;white-space:nowrap}
+  .signrow .nm small{letter-spacing:0;color:var(--warn);font-weight:500;margin-left:4px}
+
+  .foot{max-width:820px;margin:18px auto 0;font-family:var(--sans);color:#8b93a1;font-size:11px;
+    text-align:center;line-height:1.7}
+
+  @media (max-width:520px){
+    .signrow{grid-template-columns:1fr auto}
+    .signrow .role-k{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in">
+    <span class="t">새빛생명보험(가상) · <b>2026년 제9차 금융소비자보호위원회 의사록</b></span>
+    <span class="right">
+      <span class="flag">교육용 더미 데이터</span>
+      <button id="themeBtn" type="button">◐ 테마</button>
+    </span>
+  </div>
+</div>
+
+<div class="sheetwrap">
+<div class="sheet">
+  <div class="wm"><span>교육용 가상 자료 · SAMPLE</span></div>
+
+  <div class="company">새빛생명보험주식회사</div>
+  <div class="title">[ 2026년 제9차 금융소비자보호위원회 의사록 ]</div>
+
+  <p class="opening">2026년 11월 20일 오후 2시, 서울시 중구 세종대로 100, 새빛생명 본사 20층 대회의실에서
+  다음 의안을 심의 및 보고하기 위하여 2026년 제9차 금융소비자보호위원회를 개최함</p>
+
+  <div class="count">위 원 총 수 &nbsp; 9명<br>출 석 위 원 수 &nbsp; 8명</div>
+  <div class="chair">위원장 : 소비자보호관리책임자 (CCO) 한도윤 본부장</div>
+
+  <table class="attend">
+    <tbody>
+      <tr><th>참 석</th><td>소비자보호관리책임자 한도윤 본부장, 준법감시인 배하람 본부장,<br>
+        GA사업부장 윤태경, 하이브리드사업부장 진유나,<br>
+        영업기획부장 남궁별, 계약심사부장 서지후, 상품부장 김도현, 계약관리부장 최은서</td></tr>
+      <tr><th>배 석</th><td>계약심사부 보험금심사팀 이수민 차장</td></tr>
+      <tr><th>불 참</th><td>금융기관제휴사업부장 오세린 (정한결 차장 대참)</td></tr>
+    </tbody>
+  </table>
+
+  <p class="decl">위원장은 금융소비자보호기준에 관한 규정 시행세칙 제5조 제6항에 따라 성원이 되었음을 확인한 후
+  금융소비자보호위원회 개회를 선언하다.</p>
+
+  <!-- Ⅰ -->
+  <h2 class="sec">Ⅰ. 심의·의결사항</h2>
+  <div class="ref">(2026년 제9차 금융소비자보호위원회 자료 참고)</div>
+
+  <p class="body">위원장은 첫번째 의결사항인 ‘금융소비자보호 위반행위자에 대한 제재심의’ 건에 대하여 설명하다. 해당 설계사는 2026년 10월 총 4건의 민원해지 건이 발생하였고 모집경위서를 통해 종신보험을 저축성 상품으로 설명하였음을 모두 인정하였으며, 유사 민원이 추가로 접수될 가능성이 있다고 설명하다.</p>
+  <p class="body">GA사업부장은 해당 설계사를 해촉하더라도 타사로 이동하여 재위촉 후 유사 행위를 반복할 가능성이 있어, 단순 해촉에 그치지 않고 재위촉을 방지할 수 있는 관리체계가 필요하다고 말하다.</p>
+  <p class="body">위원장은 관련 담당자를 통해 재위촉 여부 및 기존 제재 이력 확인 절차가 정상적으로 운영되고 있는지 점검하고, 향후 해촉 설계사가 타사 이동 후 재위촉을 신청하는 경우 이를 방지할 수 있도록 관련 프로세스를 마련할 필요가 있다고 말하다. 본 제재심의 건은 민원발생 건수 등을 고려하여 위원 전원 만장일치로 해당 설계사를 ‘해촉’ 의결하다.</p>
+  <div class="decision">[의결사항 1] 징계 심의 : GA채널 한빛금융서비스 설계사 김하늘 <span class="tag">‘해촉’</span></div>
+
+  <p class="body">위원장은 두번째 의결사항인 ‘금융소비자보호 위반행위자에 대한 제재심의’ 이바다 설계사에 대하여 설명하다. 모집경위서를 통해 계약자와 직접 만나지 않고 청약을 진행한 사실 및 타사 설계사와 고객의 개인정보를 공유한 사실(경유계약)을 모두 인정하였다고 설명하다.</p>
+  <p class="body">위원들은 추가 사실관계 확인을 전제로 본 위원회에서는 우선 인수제한 10일을 적용하기로 결정하고, 확인 과정에서 사실관계가 달라질 경우 결과를 공유하고 제재수준을 재논의하기로 하다.</p>
+  <div class="ref">(2026년 제9차 금융소비자보호위원회 의결사항 재검토 의견서 참고)</div>
+  <p class="body">재검토 결과 앞서 확인된 설계사의 위반행위 내용에는 변동이 없으며, 강화된 제재조치 필요성에 따라 제재수준을 재검토하고 서면 의결을 실시하다. 위원별 서면의결 결과 총 9명의 위원이 의결에 참여하여 이 중 6명이 해촉으로 의결함에 따라 출석위원 과반수 이상의 찬성으로 해당 설계사를 ‘해촉’ 의결하다.</p>
+
+  <table class="votetbl">
+    <thead><tr><th>위  원</th><th>의결내역</th></tr></thead>
+    <tbody>
+      <tr><td>소비자보호관리책임자 &nbsp;한도윤</td><td class="haechok">해촉</td></tr>
+      <tr><td>준법감시인 &nbsp;배하람</td><td class="haechok">해촉</td></tr>
+      <tr><td>영업기획부장 &nbsp;남궁별</td><td>인수제한 1개월</td></tr>
+      <tr><td>금융기관제휴사업부장 &nbsp;오세린</td><td>인수제한 1개월</td></tr>
+      <tr><td>GA사업부장 &nbsp;윤태경</td><td>인수제한 1개월</td></tr>
+      <tr><td>하이브리드사업부장 &nbsp;진유나</td><td class="haechok">해촉</td></tr>
+      <tr><td>계약심사부장 &nbsp;서지후</td><td class="haechok">해촉</td></tr>
+      <tr><td>상품부장 &nbsp;김도현</td><td class="haechok">해촉</td></tr>
+      <tr><td>계약관리부장 &nbsp;최은서</td><td class="haechok">해촉</td></tr>
+    </tbody>
+  </table>
+  <div class="decision">[의결사항 2] 징계 심의 : GA채널 블루오션에셋 설계사 이바다 <span class="tag">‘해촉’</span></div>
+
+  <p class="body">위원장은 세번째 의결사항인 메타플랜 박가람 설계사에 대한 심의건을 설명하다. 위반 내용은 모집인에 의한 불법 대리서명 및 계약자에 대한 부당이익(리베이트) 제공으로, 모집경위서상 본인이 모든 위반 사실을 인정하였고 이에 따라 회사가 민원을 수용한 상황이라고 말하다. 본 제재심의 건은 위원 전원 만장일치로 해당 설계사를 ‘해촉’ 의결하다.</p>
+  <div class="decision">[의결사항 3] 징계 심의 : GA채널 메타플랜 설계사 박가람 <span class="tag">‘해촉’</span></div>
+
+  <p class="body">위원장은 네번째 의결사항인 3대 기본 지키기 미이행으로 품질보증해지 3건 이상 발생한 GA채널 정소율 설계사와 강태오 설계사에 대한 심의 건을 설명하다.</p>
+  <p class="body">준법감시인은 인수제한 10일 조치의 실효성을 질의하고, 위원장은 현재 제재기준이 다소 완화되어 있어 9월부터 적용기준을 단계적으로 강화하는 방안을 검토 중이라고 설명하다. GA사업부장은 건수뿐 아니라 구체적인 귀책사유와 전체 모집계약 대비 품보해지 비율도 함께 고려할 필요가 있다고 말하다.</p>
+  <p class="body">본 제재 심의 건은 위원 전원 만장일치로 ‘인수제한 10일’을 의결하다.</p>
+  <div class="decision">[의결사항 4] 징계 심의 : GA채널 한빛금융서비스 설계사 정소율 <span class="tag">‘인수제한 10일’</span><br>
+    GA채널 새봄에셋 설계사 강태오 <span class="tag">‘인수제한 10일’</span></div>
+
+  <p class="body">위원장은 다섯번째 의결사항인 ‘보험금 부지급 및 일부지급 건에 대한 적정성 검토’ 관련 설명을 요청하고, 이에 대하여 보험금심사팀 이수민 차장이 설명하다.</p>
+  <div class="ref">(2026년 제9차 금융소비자보호위원회 자료 참고)</div>
+  <p class="body">이수민 차장은 10월 보험금 심의 대상 중 조사미동의를 제외하고 고지의무 위반이 약 35%, 약관상 면책이 약 65% 수준이며, 가입 전 기저질환 보유 계약자의 질병장해급여금 청구 및 간병비 청구가 증가하는 추세라고 설명하다.</p>
+  <p class="body">이어 감액지급·일부지급·합의지급의 차이에 대한 위원들의 질의에 대하여, 합의지급은 수익자와 회사가 합의서를 통해 금액을 정하는 절차이고, 일부지급은 여러 청구 사유 중 일부만 지급, 감액지급은 하나의 사유에 대해 일부 금액만 지급하는 것이라고 설명하다.</p>
+  <p class="body" style="margin-top:14px">위원장은 아래와 같이 의결하다.</p>
+  <div class="resolve">
+    <div class="h">1. 계약해지 (12건) 적정성 검토 : 적정</div><div class="s">- 김○○ 손님 외 11명</div>
+    <div class="h">2. 부지급 (24건) 적정성 검토 : 적정</div><div class="s">- 이○○ 손님 외 23명</div>
+    <div class="h">3. 감액지급 (4건) 적정성 검토 : 적정</div><div class="s">- 박○○ 손님 외 3명</div>
+    <div class="h">4. 일부지급 (3건) 적정성 검토 : 적정</div><div class="s">- 정○○ 손님 외 2명</div>
+    <div class="h">5. 합의지급 (2건) 적정성 검토 : 적정</div><div class="s">- 최○○ 손님 외 1명</div>
+  </div>
+
+  <!-- Ⅱ -->
+  <h2 class="sec">Ⅱ. 보고사항</h2>
+  <div class="ref">(2026년 제9차 금융소비자보호위원회 자료 참고)</div>
+  <p class="body">위원장은 10월 민원이 48건으로 전월 대비 9건 증가하였음을 설명하다. 채널별로는 GA가 42건으로 전체의 약 88%를 차지하고 있으며, 유형별로는 보험모집 관련 민원이 27건으로 가장 많았고 대부분 종신보험을 저축성 상품으로 알고 가입했다는 내용이라고 설명하다.</p>
+  <p class="body">기타 사항으로 담당 대리점 및 설계사 변경 요청이 자주 발생하고 있으며, 이미 신계약 수수료가 지급된 상태에서 계약을 다른 GA로 이관할 경우 환수 문제 등으로 계약 이관이 쉽지 않은 구조적 어려움이 있다고 설명하다. 중장기적으로 계약을 안정적으로 관리할 수 있는 방안과 민원 감소를 위한 제도적 개선책을 검토할 필요가 있다고 강조하다.</p>
+  <p class="body">위원장은 9월 청약철회율이 건수 기준 6.8% 수준으로 업계 평균과 크게 차이가 나지 않으며, 철회 사유는 단순 변심과 경제적 형편이 주를 이룬다고 설명하다. 또한 당사 불완전판매율이 업계 평균 대비 다소 높은 수준으로, 영업부서의 상품 판매 및 GA채널 교육 시 완전판매가 이루어지도록 각별한 주의를 당부하다.</p>
+  <p class="body">영업기획부장은 10월 유지율 현황에 대하여, 회사 전체 13회차 유지율은 89.24%로 특이사항은 없다고 말하다.</p>
+
+  <p class="closing">이상과 같이 위원회가 완료되자 위원장은 ‘금일 의안에 대한 의결 및 보고가 종료되었음’을 말하고 폐회를 선언함 (2026년 11월 20일 오후 2시 40분 종료)</p>
+  <p class="closing">위 의결 및 보고 사항을 명확히 하기 위하여 본 의사록을 작성하고, 위원장과 위원들의 서명은 전자결재로 한다.</p>
+
+  <div class="signdate">2026년 11월 20일<br><b>새빛생명보험 주식회사</b></div>
+
+  <div class="sign">
+    <div class="grp">금융소비자보호위원회</div>
+    <div class="signrow"><span class="role-k">위원장</span><span class="role">소비자보호관리책임자</span><span class="nm">한 도 윤</span></div>
+    <div class="signrow"><span class="role-k">위 원</span><span class="role">준법감시인</span><span class="nm">배 하 람</span></div>
+    <div class="signrow"><span class="role-k"></span><span class="role">영업기획부장</span><span class="nm">남 궁 별</span></div>
+    <div class="signrow"><span class="role-k"></span><span class="role">금융기관제휴사업부장</span><span class="nm">오 세 린 <small>(불참)</small></span></div>
+    <div class="signrow"><span class="role-k"></span><span class="role">GA사업부장</span><span class="nm">윤 태 경</span></div>
+    <div class="signrow"><span class="role-k"></span><span class="role">하이브리드사업부장</span><span class="nm">진 유 나</span></div>
+    <div class="signrow"><span class="role-k"></span><span class="role">계약심사부장</span><span class="nm">서 지 후</span></div>
+    <div class="signrow"><span class="role-k"></span><span class="role">상품부장</span><span class="nm">김 도 현</span></div>
+    <div class="signrow"><span class="role-k"></span><span class="role">계약관리부장</span><span class="nm">최 은 서</span></div>
+  </div>
+
+</div>
+</div>
+
+<div class="foot">회의록 양식만 유지하고 회사·위원·설계사·수치는 모두 교육용 가상(더미) 데이터로 채운 샘플입니다. 실제 회사·인물·사건과 무관합니다.</div>
+
+<script>
+  document.getElementById("themeBtn").onclick=function(){
+    var r=document.documentElement, cur=r.getAttribute("data-theme");
+    var dark=cur?cur==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+    r.setAttribute("data-theme",dark?"light":"dark");
+  };
+</script>
+
+</body>
+</html>
