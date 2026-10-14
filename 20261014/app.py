@@ -20,7 +20,7 @@ except ImportError:  # python-dotenv가 없어도 환경변수로 동작
 
 from core import load_inputs, loader
 from core.compare import compare, load_answer, score
-from core.config import DECISION_CODES, DECISION_LABELS, DEFAULT_FILES, OUTPUT_DIR, Settings
+from core.config import DECISION_CODES, DECISION_LABELS, DEFAULT_FILES, OUTPUT_DIR, Settings, template_path
 from core.extractor import ExtractionError, extract_mock, extract_with_claude, has_api_key
 from core.render import build_context, render_docx
 from core.rules import summarize, validate
@@ -314,7 +314,7 @@ with tab4:
 
     context = build_context(current, ctx, agendas, transcript, confirmed)
     try:
-        doc_bytes = render_docx(context)
+        doc_bytes = render_docx(context, template_path(settings))
         state = "확정" if confirmed else "초안"
         fname = f"의사록_{ctx.info['session_no'].replace(' ', '')}_{state}.docx"
         OUTPUT_DIR.mkdir(exist_ok=True)

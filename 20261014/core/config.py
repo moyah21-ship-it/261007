@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 OUTPUT_DIR = ROOT / "output"
 PROMPT_DIR = ROOT / "prompts"
+TEMPLATE_DIR = ROOT / "templates"
 SETTINGS_FILE = ROOT / "settings.json"
 
 DEFAULT_FILES = {
@@ -37,6 +38,8 @@ class Settings:
     # 사용할 Claude 모델 (환경변수 ANTHROPIC_MODEL 이 있으면 그 값이 우선)
     model: str = "claude-sonnet-5-5"
     max_tokens: int = 8000
+    # 사용할 의사록 양식 템플릿 파일명 (templates/ 폴더 기준). 회사·위원회별로 교체 가능.
+    template: str = "금소위_기본.docx"
     discussion_types: list[str] = field(default_factory=lambda: ["질의", "의견", "답변", "요청"])
 
     @classmethod
@@ -54,6 +57,13 @@ class Settings:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+def template_path(settings: "Settings | None" = None) -> Path:
+    """선택된 양식 템플릿의 경로. templates/ 에 없으면 기본 양식으로 폴백한다."""
+    s = settings or Settings.load()
+    p = TEMPLATE_DIR / s.template
+    return p if p.exists() else DEFAULT_FILES["template"]
 
 
 DECISION_CODES = {
