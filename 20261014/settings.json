@@ -1,0 +1,7 @@
+{
+  "quorum_ratio": 0.5,
+  "pass_ratio": 0.5,
+  "model": "claude-sonnet-5-5",
+  "max_tokens": 8000,
+  "template": "금소위_기본.docx"
+}

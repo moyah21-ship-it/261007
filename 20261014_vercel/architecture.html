@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>의사록 시스템 아키텍처</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: a vertical brief — hero, pipeline rail, module grid, decision ledger, scope split */
+  :root{
+    --bg:#f4f6f9; --panel:#ffffff; --panel-2:#f7f9fc; --ink:#141b26; --muted:#5a6678;
+    --line:#e0e5ee; --line-2:#cad2e0; --accent:#1f4e8c; --accent-2:#2e74c9; --accent-soft:#e8f0fb;
+    --good:#1f7a52; --good-soft:#e5f3ec; --warn:#9a5a16; --warn-soft:#fbf0e0; --stop:#9a2d2d; --stop-soft:#f8e8e8;
+    --mono:"JetBrains Mono",ui-monospace,monospace; --sans:"Noto Sans KR",system-ui,sans-serif;
+    --r:14px; --shadow:0 1px 2px rgba(20,30,50,.05),0 8px 30px rgba(20,30,50,.06);
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0b1018; --panel:#141c28; --panel-2:#111823; --ink:#e8edf4; --muted:#93a0b2;
+    --line:#242f3f; --line-2:#334154; --accent:#79a8e8; --accent-2:#5c93e0; --accent-soft:#16233a;
+    --good:#6fcf9b; --good-soft:#12271d; --warn:#e0a85f; --warn-soft:#2a2011; --stop:#e38585; --stop-soft:#2c1717;
+    color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0b1018; --panel:#141c28; --panel-2:#111823; --ink:#e8edf4; --muted:#93a0b2;
+    --line:#242f3f; --line-2:#334154; --accent:#79a8e8; --accent-2:#5c93e0; --accent-soft:#16233a;
+    --good:#6fcf9b; --good-soft:#12271d; --warn:#e0a85f; --warn-soft:#2a2011; --stop:#e38585; --stop-soft:#2c1717;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding-inline:18px;padding-block:0}
+  .mono{font-family:var(--mono)}
+
+  /* Hero */
+  header{background:linear-gradient(160deg,var(--accent) 0%,#15325c 100%);color:#fff;position:relative;overflow:hidden}
+  :root:not([data-theme="light"]) header,:root[data-theme="dark"] header{background:linear-gradient(160deg,#14263f 0%,#0d1824 100%)}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header{background:linear-gradient(160deg,#14263f 0%,#0d1824 100%)}}
+  .hero{max-width:1000px;margin:0 auto;padding:30px 18px 26px;position:relative;z-index:1}
+  .eyebrow{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:#adc7ec;font-weight:700}
+  .hero h1{font-weight:900;font-size:clamp(23px,4.6vw,36px);margin:7px 0 6px;letter-spacing:-.02em;text-wrap:balance;color:#fff}
+  .hero p{color:#cfdef2;font-size:14px;max-width:62ch;margin:0}
+  .hero .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{font-size:11.5px;font-weight:600;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+    color:#eaf2ff;padding:4px 11px;border-radius:999px}
+  .chip.k{background:rgba(120,168,232,.22)}
+  .themeBtn{position:absolute;top:16px;right:18px;z-index:2;font:inherit;font-size:12px;
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;padding:5px 11px;border-radius:999px;cursor:pointer}
+
+  main{padding-block:30px 60px}
+  section{margin-bottom:34px}
+  h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-2);font-weight:700;margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+
+  /* Pipeline rail */
+  .pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+  .stage{padding:16px 14px;border-right:1px solid var(--line);position:relative;display:flex;flex-direction:column;gap:6px}
+  .stage:last-child{border-right:none}
+  .stage .n{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent-2)}
+  .stage .ttl{font-weight:700;font-size:14px}
+  .stage .d{font-size:12px;color:var(--muted);line-height:1.5}
+  .stage .mod{font-family:var(--mono);font-size:10.5px;color:var(--accent-2);background:var(--accent-soft);
+    padding:2px 7px;border-radius:5px;align-self:flex-start;margin-top:auto}
+  .stage .arrow{position:absolute;right:-9px;top:50%;transform:translateY(-50%);z-index:2;
+    width:18px;height:18px;border-radius:50%;background:var(--accent-2);color:#fff;display:grid;place-items:center;font-size:11px}
+  .stage.gate{background:var(--warn-soft)}
+  .stage.gate .n{color:var(--warn)}
+  .stage.gate .mod{color:var(--warn);background:transparent;border:1px dashed var(--warn)}
+  .stage.out{background:var(--good-soft)}
+  .stage.out .n{color:var(--good)}
+  .stage.out .mod{color:var(--good);background:transparent;border:1px dashed var(--good)}
+  .gatebadge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--warn);
+    background:var(--warn-soft);border:1px solid var(--warn);padding:3px 9px;border-radius:999px;margin-top:12px}
+  @media (max-width:720px){.pipe{grid-template-columns:1fr}.stage{border-right:none;border-bottom:1px solid var(--line)}
+    .stage:last-child{border-bottom:none}.stage .arrow{right:50%;top:auto;bottom:-9px;transform:translateX(50%) rotate(90deg)}}
+
+  /* Module grid */
+  .mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .mod-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+  .mod-card .fn{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--accent-2)}
+  .mod-card .dsc{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.55}
+
+  /* Decision ledger */
+  .ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:11px}
+  .dec{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent-2);border-radius:10px;
+    padding:12px 14px;box-shadow:var(--shadow)}
+  .dec .q{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--muted)}
+  .dec .t{font-weight:700;font-size:13px;margin:1px 0 4px}
+  .dec .v{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .dec .v b{color:var(--ink);font-weight:600}
+
+  /* Scope split */
+  .scope{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .scope .box{border-radius:12px;padding:14px 16px;border:1px solid var(--line);box-shadow:var(--shadow)}
+  .scope .in{background:var(--good-soft);border-color:transparent}
+  .scope .out{background:var(--stop-soft);border-color:transparent}
+  .scope h3{font-size:13px;margin:0 0 8px;display:flex;align-items:center;gap:7px}
+  .scope .in h3{color:var(--good)} .scope .out h3{color:var(--stop)}
+  .scope ul{margin:0;padding-left:18px;font-size:12.5px;line-height:1.7;color:var(--ink)}
+  @media (max-width:560px){.scope{grid-template-columns:1fr}}
+
+  /* run block */
+  .run{background:#0f1622;color:#dbe6f2;border-radius:12px;padding:15px 17px;font-family:var(--mono);font-size:12.5px;
+    line-height:1.85;overflow-x:auto;border:1px solid #223049}
+  :root[data-theme="light"] .run,:root:not([data-theme="dark"]) .run{}
+  .run .c{color:#6f88a8} .run .k{color:#7fb2ff}
+
+  footer{border-top:1px solid var(--line);padding:18px 0 4px;color:var(--muted);font-size:11.5px;text-align:center;line-height:1.7}
+  .flag{display:inline-block;font-size:11px;background:var(--accent-soft);color:var(--accent-2);border:1px solid var(--line-2);
+    padding:2px 9px;border-radius:999px;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <button class="themeBtn" id="themeBtn" type="button">◐ 테마</button>
+  <div class="hero">
+    <div class="eyebrow">금융소비자보호위원회 · 의사록 자동작성</div>
+    <h1>시스템 아키텍처 &amp; 설계</h1>
+    <p>녹취 텍스트를 받아 안건별 내용을 추출하고, 업무규칙으로 교차검증한 뒤, 담당자 확정을 거쳐 공식 양식의 의사록 <span class="mono">.docx</span>를 생성하는 파이프라인. 아래 설계는 압박 인터뷰(grilling)로 합의한 결정을 반영한다.</p>
+    <div class="meta">
+      <span class="chip k">내부 운영 도구 지향</span>
+      <span class="chip">산출물 = .docx</span>
+      <span class="chip">휴먼-인-더-루프</span>
+      <span class="chip">교육용 더미 데이터</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <h2>처리 파이프라인</h2>
+    <p class="lead"><span class="mono">generate.py</span> 한 번으로 아래 5단계가 헤드리스로 실행된다. Streamlit 웹앱은 같은 흐름을 사람이 보며 조작하는 작업 화면이다.</p>
+    <div class="pipe">
+      <div class="stage">
+        <span class="n">STEP 1</span><span class="ttl">입력 로드</span>
+        <span class="d">위원명단·회의정보·안건·녹취록을 읽어 발언자를 매핑</span>
+        <span class="mod">core/loader · meeting</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="stage">
+        <span class="n">STEP 2</span><span class="ttl">AI 추출</span>
+        <span class="d">안건별 요지·발언·처리결과·후속조치 구조화 (키 없으면 모의 모드)</span>
+        <span class="mod">core/extractor</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="stage">
+        <span class="n">STEP 3</span><span class="ttl">규칙검증</span>
+        <span class="d">R1~R14로 정족수·표결·기한·근거를 교차검증, 경고 산출</span>
+        <span class="mod">core/rules</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="stage gate">
+        <span class="n">STEP 4 · 게이트</span><span class="ttl">담당자 확정</span>
+        <span class="d">사람이 수정·확정(R14). 확정 전엔 '초안', 확정 후 '확정본'</span>
+        <span class="mod">human-in-the-loop</span>
+        <span class="arrow">→</span>
+      </div>
+      <div class="stage out">
+        <span class="n">STEP 5</span><span class="ttl">의사록 생성</span>
+        <span class="d">선택한 양식 템플릿을 채워 .docx 발행</span>
+        <span class="mod">core/render · templates/</span>
+      </div>
+    </div>
+    <span class="gatebadge">⚠ AI는 초안만 생성 — 최종 책임은 담당자 확정(R14)에 있다</span>
+  </section>
+
+  <section>
+    <h2>핵심 모듈</h2>
+    <p class="lead">책임을 모듈로 분리해, 규칙·양식·모델을 코드 수정 없이 바꿀 수 있다.</p>
+    <div class="mods">
+      <div class="mod-card"><div class="fn">generate.py</div><div class="dsc">end-to-end CLI. 추출→검증→초안·확정 .docx 생성. <span class="mono">--ai / --template / --out</span></div></div>
+      <div class="mod-card"><div class="fn">core/loader.py</div><div class="dsc">CSV·녹취록 파싱, 발언자 매핑(R11). UTF-8/CP949 인코딩 처리</div></div>
+      <div class="mod-card"><div class="fn">core/meeting.py</div><div class="dsc">재적·출석·이석·정족수 계산(R1·R3·R13), 표결 시점 출석 산정</div></div>
+      <div class="mod-card"><div class="fn">core/extractor.py</div><div class="dsc">Claude API 추출 + 모의 모드. JSON 오류 시 1회 재요청·정규화</div></div>
+      <div class="mod-card"><div class="fn">core/rules.py</div><div class="dsc">업무규칙 R1~R14 검증. 경고/정보 분류로 신뢰 게이트 지원</div></div>
+      <div class="mod-card"><div class="fn">core/render.py</div><div class="dsc">docxtpl로 양식 템플릿을 채워 .docx 생성, 초안/확정 표시(R14)</div></div>
+      <div class="mod-card"><div class="fn">templates/</div><div class="dsc">양식 .docx 분리·버전관리. settings의 <span class="mono">template</span>로 선택</div></div>
+      <div class="mod-card"><div class="fn">core/config.py</div><div class="dsc">정족수·가결 기준·모델·템플릿을 코드와 분리(settings.json)</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>설계 결정 (grilling 합의)</h2>
+    <p class="lead">압박 인터뷰로 확정한 13개 결정. 각 결정이 구현 원칙의 근거가 된다.</p>
+    <div class="ledger">
+      <div class="dec"><div class="q">Q1 · 목적지</div><div class="t">내부 운영 도구로 발전</div><div class="v">교육 샘플을 넘어 실제 업무용. 단 <b>당분간 더미 데이터로만</b> 검증</div></div>
+      <div class="dec"><div class="q">Q2 · 산출물</div><div class="t">.docx 가 최종 결과물</div><div class="v">웹앱은 생성·검토·확정용 <b>작업 화면</b></div></div>
+      <div class="dec"><div class="q">Q3 · 데이터 경계</div><div class="t">실데이터 반입 금지</div><div class="v">실명·주민번호·녹취는 리포/클라우드 밖, <b>사내 폐쇄망</b>에서만</div></div>
+      <div class="dec"><div class="q">Q4 · 출력 엔진</div><div class="t">docxtpl 템플릿</div><div class="v">양식 변경은 코드 아닌 <b>.docx 템플릿 교체</b>로</div></div>
+      <div class="dec"><div class="q">Q5 · 신뢰 게이트</div><div class="t">휴먼-인-더-루프</div><div class="v">확정(R14) 후에만 '확정본'. <b>AI는 초안만</b></div></div>
+      <div class="dec"><div class="q">Q6 · 실행 환경</div><div class="t">폐쇄망 온프레</div><div class="v">운영은 사내 Streamlit, <b>run.bat은 개발용</b></div></div>
+      <div class="dec"><div class="q">Q7 · AI 접근</div><div class="t">화이트리스트 egress</div><div class="v"><b>api.anthropic.com만</b> 허용 + Claude API, 불가 시 온프레 sLLM</div></div>
+      <div class="dec"><div class="q">Q8 · 템플릿 관리</div><div class="t">폴더 분리·버전관리</div><div class="v">회사·위원회별 템플릿을 <b>settings에서 선택</b></div></div>
+      <div class="dec"><div class="q">Q9 · 마스킹</div><div class="t">가역 토큰 치환</div><div class="v">전송 전 치환→복원, <b>주민번호는 미전송</b></div></div>
+      <div class="dec"><div class="q">Q10 · 모델</div><div class="t">Sonnet + Opus 폴백</div><div class="v">기본 Sonnet, <b>어려운 건만 Opus</b>, 설정으로 교체</div></div>
+      <div class="dec"><div class="q">Q11 · 감사 추적</div><div class="t">원안↔최종 diff 보존</div><div class="v">확정자·시각 <b>감사 로그</b>로 규제 대응</div></div>
+      <div class="dec"><div class="q">Q12 · 실행 순서</div><div class="t">파이프라인 먼저</div><div class="v"><b>A 완료</b>(파이프라인+템플릿), B 마스킹·감사로그는 다음</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>작업 범위 (Q13)</h2>
+    <div class="scope">
+      <div class="box in">
+        <h3>✓ 이번 범위</h3>
+        <ul>
+          <li>동작하는 .docx 생성 파이프라인</li>
+          <li>양식 템플릿 분리 구조</li>
+          <li>더미 데이터 검증 · 규칙검증</li>
+          <li>설계 문서화</li>
+        </ul>
+      </div>
+      <div class="box out">
+        <h3>✗ 범위 밖 (사내 몫)</h3>
+        <ul>
+          <li>실데이터 연동</li>
+          <li>사내 SSO · 권한관리</li>
+          <li>폐쇄망 인프라 구축</li>
+          <li>보안팀 승인 절차</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>지금 돌려보기</h2>
+    <div class="run">
+<span class="c"># 더미 회의 → 초안·확정 .docx 생성 (output/)</span><br>
+$ <span class="k">python</span> generate.py<br>
+<span class="c"># ANTHROPIC_API_KEY 가 있으면 Claude 로 추출</span><br>
+$ <span class="k">python</span> generate.py --ai<br>
+<span class="c"># 다른 양식 템플릿으로 교체</span><br>
+$ <span class="k">python</span> generate.py --template 다른양식.docx
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <span class="flag">교육용 가상 자료</span><br>
+  모든 데이터·인물·수치는 가상(더미)이며 실제 회사·위원회와 무관합니다. 실데이터는 이 구조에 반입하지 않습니다.
+</footer>
+
+<script>
+  document.getElementById("themeBtn").onclick=function(){
+    var r=document.documentElement, cur=r.getAttribute("data-theme");
+    var dark=cur?cur==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+    r.setAttribute("data-theme",dark?"light":"dark");
+  };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,245 @@
+{
+  "_note": "교육용 모의(mock) 결과 — 07-1 정답데이터 기준. API 키가 없을 때 AI 추출 대신 사용됩니다.",
+  "agendas": [
+    {
+      "agenda_id": "AG-01",
+      "summary": "3분기 접수 민원은 총 412건으로 전분기(449건) 대비 8.2% 감소함. 유형별 비중은 보험금 지급 46%, 불완전판매 21%, 계약 유지·관리 18%, 기타 15%이며, 보험금 지급 관련 민원 비중은 전분기 대비 5%p 증가함.",
+      "discussions": [
+        {
+          "speaker_id": "M02",
+          "type": "질의",
+          "content": "보험금 지급 민원 비중 증가 원인과 특정 상품 집중 여부를 질의함.",
+          "source_lines": [
+            7
+          ]
+        },
+        {
+          "speaker_id": "S01",
+          "type": "답변",
+          "content": "상품별 세부 분석을 진행 중이며, 실손보험 관련 서류 보완 요청 건이 다수인 것으로 1차 파악됨.",
+          "source_lines": [
+            8
+          ]
+        },
+        {
+          "speaker_id": "M01",
+          "type": "요청",
+          "content": "보험금 지급 민원 증가 원인 분석 결과를 차기 위원회에 보고하도록 요청함(불참한 보험금심사팀에 간사가 전달).",
+          "source_lines": [
+            9
+          ]
+        }
+      ],
+      "decision": "보고접수",
+      "decision_condition": "",
+      "decision_line": 11,
+      "votes": {
+        "for": [],
+        "against": [],
+        "abstain": []
+      },
+      "vote_note": "",
+      "follow_ups": [
+        {
+          "task": "보험금 지급 민원 증가 원인 분석 결과 보고",
+          "owner_dept": "보험금심사팀",
+          "due": "차기(제10차) 위원회",
+          "remark": "불참 부서, 간사 전달",
+          "source_lines": [
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "agenda_id": "AG-02",
+      "summary": "3분기 해피콜 대상 2,000건 중 1,936건을 완료함(미완료율 3.2%). 불완전판매 의심 건은 18건이며, 이 중 12건이 GA 채널에서 발생함.",
+      "discussions": [
+        {
+          "speaker_id": "M04",
+          "type": "요청",
+          "content": "의심 건 관련 GA 대리점 명단 공유를 요청하고, 해당 대리점 교육을 즉시 진행하겠다는 의견을 밝힘.",
+          "source_lines": [
+            14
+          ]
+        },
+        {
+          "speaker_id": "M05",
+          "type": "답변",
+          "content": "회의 후 GA사업본부에 대리점 명단을 별도 공유하겠다고 답변함.",
+          "source_lines": [
+            15
+          ]
+        },
+        {
+          "speaker_id": "M06",
+          "type": "의견",
+          "content": "의심 18건에 대해 고객 재확인 후 청약철회·계약 취소 안내가 적절히 이루어졌는지 준법감시 차원의 확인이 필요하다는 의견을 제시함.",
+          "source_lines": [
+            16
+          ]
+        },
+        {
+          "speaker_id": "M01",
+          "type": "요청",
+          "content": "계약관리본부는 의심 18건의 고객 재확인 및 안내 결과를 정리하고, GA사업본부는 해당 대리점 교육을 12월 말까지 완료하도록 요청함.",
+          "source_lines": [
+            17
+          ]
+        }
+      ],
+      "decision": "보고접수",
+      "decision_condition": "",
+      "decision_line": 17,
+      "votes": {
+        "for": [],
+        "against": [],
+        "abstain": []
+      },
+      "vote_note": "",
+      "follow_ups": [
+        {
+          "task": "불완전판매 의심 18건 고객 재확인 및 안내 결과 정리",
+          "owner_dept": "계약관리본부",
+          "due": "미정",
+          "remark": "",
+          "source_lines": [
+            17
+          ]
+        },
+        {
+          "task": "의심 건 관련 GA 대리점 명단 공유",
+          "owner_dept": "계약관리본부",
+          "due": "미정(회의 후)",
+          "remark": "",
+          "source_lines": [
+            15
+          ]
+        },
+        {
+          "task": "해당 GA 대리점 대상 교육 실시",
+          "owner_dept": "GA사업본부",
+          "due": "2026-12-31",
+          "remark": "'12월 말' 환산",
+          "source_lines": [
+            17
+          ]
+        }
+      ]
+    },
+    {
+      "agenda_id": "AG-03",
+      "summary": "① 고령 금융소비자 대상 판매 시 확인 절차 신설, ② 민원 처리 기한 단축(14일 → 10일), ③ 제12조 판매 모니터링 주기 변경(반기 → 분기)을 주요 내용으로 함.",
+      "discussions": [
+        {
+          "speaker_id": "M06",
+          "type": "의견",
+          "content": "최근 감독 동향에 비추어 제12조 모니터링 주기는 월 단위가 적절하다는 의견을 제시함.",
+          "source_lines": [
+            20
+          ]
+        },
+        {
+          "speaker_id": "M03",
+          "type": "의견",
+          "content": "월 단위 시행 시 현업 부담이 크므로 인력 계획을 함께 검토해야 한다는 의견을 제시함.",
+          "source_lines": [
+            21
+          ]
+        },
+        {
+          "speaker_id": "M06",
+          "type": "의견",
+          "content": "전수 점검 대신 표본 점검으로 운영하면 부담을 줄일 수 있다는 의견을 제시함.",
+          "source_lines": [
+            22
+          ]
+        },
+        {
+          "speaker_id": "M01",
+          "type": "의견",
+          "content": "제12조를 '월 단위 표본 점검'으로 수정하는 조건으로 의결할 것을 제안함.",
+          "source_lines": [
+            23
+          ]
+        }
+      ],
+      "decision": "조건부가결",
+      "decision_condition": "제12조 판매 모니터링 주기를 '월 단위 표본 점검'으로 수정하여 시행함.",
+      "decision_line": 25,
+      "votes": {
+        "for": [
+          "M01",
+          "M02",
+          "M03",
+          "M04",
+          "M05",
+          "M06"
+        ],
+        "against": [],
+        "abstain": []
+      },
+      "vote_note": "",
+      "follow_ups": [
+        {
+          "task": "제12조 수정사항 반영 및 사내 공지",
+          "owner_dept": "소비자보호부(간사)",
+          "due": "2026-11-27",
+          "remark": "'다음 주 금요일' 환산",
+          "source_lines": [
+            25
+          ]
+        }
+      ]
+    },
+    {
+      "agenda_id": "AG-04",
+      "summary": "본 상품은 2027년 1월 출시 예정이며, 소비자보호 사전점검 지적사항 5건(해지환급금 예시표 가독성 개선 등)을 모두 반영 완료함.",
+      "discussions": [
+        {
+          "speaker_id": "M06",
+          "type": "의견",
+          "content": "주요 판매 대상에 60세 이상 고객이 포함되어 있으나 고령자용 핵심설명서가 마련되지 않아, 보완 전에는 승인에 동의하기 어렵다는 의견을 제시함.",
+          "source_lines": [
+            30
+          ]
+        },
+        {
+          "speaker_id": "M02",
+          "type": "답변",
+          "content": "고령자용 핵심설명서를 출시 전까지 별도 제작하겠다고 답변함.",
+          "source_lines": [
+            31
+          ]
+        }
+      ],
+      "decision": "원안가결",
+      "decision_condition": "",
+      "decision_line": 37,
+      "votes": {
+        "for": [
+          "M01",
+          "M02",
+          "M03",
+          "M05"
+        ],
+        "against": [
+          "M06"
+        ],
+        "abstain": []
+      },
+      "vote_note": "반대 사유(배하람 위원): 고령자용 핵심설명서 미마련. 부대의견: 상품본부는 고령자용 핵심설명서를 2026. 12. 15.까지 마련하여 소비자보호부의 확인을 받을 것.",
+      "follow_ups": [
+        {
+          "task": "고령자용 핵심설명서 마련 및 소비자보호부 확인",
+          "owner_dept": "상품본부",
+          "due": "2026-12-15",
+          "remark": "",
+          "source_lines": [
+            37
+          ]
+        }
+      ]
+    }
+  ]
+}

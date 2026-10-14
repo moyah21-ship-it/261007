@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>의사록 자동작성 PoC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap">
+<style>
+  /* Layout: fixed institutional header + horizontal tab rail over a single scrolling work column */
+  :root{
+    --bg:#f4f5f7; --panel:#ffffff; --panel-2:#fbfcfd; --ink:#1a2230; --muted:#5b6778;
+    --line:#dfe3ea; --line-strong:#c6ccd8;
+    --accent:#1f3a63; --accent-soft:#eaf0f8; --accent-ink:#2c4f85;
+    --warn:#b4432b; --warn-soft:#fbeae6; --info:#2a6f52; --info-soft:#e7f3ec;
+    --gold:#9a7b2e;
+    --serif:"Noto Serif KR",serif;
+    --sans:"Noto Sans KR",system-ui,sans-serif;
+    --radius:10px; --shadow:0 1px 2px rgba(20,30,50,.06),0 6px 22px rgba(20,30,50,.05);
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0e141f; --panel:#161e2b; --panel-2:#131a26; --ink:#e7ecf3; --muted:#9aa6b6;
+    --line:#273142; --line-strong:#36435a;
+    --accent:#8fb3e6; --accent-soft:#1a2740; --accent-ink:#aecaf3;
+    --warn:#f0917a; --warn-soft:#331c17; --info:#7fd3a7; --info-soft:#16281f;
+    --gold:#d8b25f; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#0e141f; --panel:#161e2b; --panel-2:#131a26; --ink:#e7ecf3; --muted:#9aa6b6;
+    --line:#273142; --line-strong:#36435a;
+    --accent:#8fb3e6; --accent-soft:#1a2740; --accent-ink:#aecaf3;
+    --warn:#f0917a; --warn-soft:#331c17; --info:#7fd3a7; --info-soft:#16281f;
+    --gold:#d8b25f; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:0}
+
+  /* Header */
+  header.top{background:var(--accent);color:#fff}
+  :root:not([data-theme="light"]) header.top, :root[data-theme="dark"] header.top{background:#101a2c}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header.top{background:#101a2c}}
+  .top-inner{max-width:1080px;margin:0 auto;padding:18px 16px 16px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end;justify-content:space-between}
+  .brand{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:#bcd0ee;font-weight:500}
+  .brand h1{font-family:var(--serif);font-weight:700;font-size:clamp(19px,3.4vw,26px);margin:0;letter-spacing:-.01em;text-wrap:balance;color:#fff}
+  .meta-row{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:#cdddf2}
+  .meta-row b{color:#fff;font-weight:500}
+  .demo-flag{font-size:11px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#eaf2ff;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .theme-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;font:inherit;font-size:12px;padding:5px 11px;border-radius:999px;cursor:pointer}
+  .theme-btn:hover{background:rgba(255,255,255,.22)}
+
+  /* Tabs */
+  .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+  .tabs-inner{max-width:1080px;margin:0 auto;display:flex;gap:2px;padding:0 10px;overflow-x:auto;scrollbar-width:none}
+  .tabs-inner::-webkit-scrollbar{display:none}
+  .tab{appearance:none;background:none;border:none;font:inherit;color:var(--muted);padding:13px 15px 11px;cursor:pointer;white-space:nowrap;border-bottom:2.5px solid transparent;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:500}
+  .tab .n{font-family:var(--serif);font-size:13px;width:21px;height:21px;display:grid;place-items:center;border-radius:50%;background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+  .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+  .tab[aria-selected="true"] .n{background:var(--accent);color:#fff}
+  .tab .pill{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+
+  main{padding-block:22px 48px}
+  section[role=tabpanel]{animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){section[role=tabpanel],section[role=tabpanel] *{animation:none!important}}
+
+  .lead{color:var(--muted);font-size:13.5px;margin:-4px 0 18px;max-width:64ch}
+  h2.sec{font-family:var(--serif);font-size:18px;font-weight:700;margin:26px 0 12px;letter-spacing:-.01em}
+  h2.sec:first-of-type{margin-top:4px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .grid{display:grid;gap:14px}
+  .stat-row{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .stat{padding:15px 16px}
+  .stat .k{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .stat .v{font-family:var(--serif);font-size:25px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+  .stat .v small{font-size:13px;color:var(--muted);font-weight:500;font-family:var(--sans)}
+  .stat.ok .v{color:var(--info)}
+
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--panel-2);font-weight:700;font-size:12px;color:var(--muted);letter-spacing:.02em;position:sticky;top:0}
+  tbody tr:last-child td{border-bottom:none}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
+  .st-present{background:var(--info-soft);color:var(--info)}
+  .st-absent{background:var(--warn-soft);color:var(--warn)}
+  .st-leave{background:#fff3e0;color:var(--gold)}
+  :root:not([data-theme="light"]) .st-leave,:root[data-theme="dark"] .st-leave{background:#2c2410}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .st-leave{background:#2c2410}}
+  .st-none{background:var(--line);color:var(--muted)}
+
+  .type-q{background:#eef1fb;color:#3a51a8}
+  .type-a{background:var(--info-soft);color:var(--info)}
+  .type-op{background:#f3edf9;color:#7a4da0}
+  .type-req{background:#fdf0e6;color:var(--gold)}
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]) .type-q{background:#1b2440;color:#aec0ef}
+    :root:not([data-theme="light"]) .type-a{background:#16281f;color:#7fd3a7}
+    :root:not([data-theme="light"]) .type-op{background:#281a33;color:#c9a6e6}
+    :root:not([data-theme="light"]) .type-req{background:#2c2211;color:#e6c07a}
+  }
+  :root[data-theme="dark"] .type-q{background:#1b2440;color:#aec0ef}
+  :root[data-theme="dark"] .type-op{background:#281a33;color:#c9a6e6}
+  :root[data-theme="dark"] .type-req{background:#2c2211;color:#e6c07a}
+
+  /* Agenda cards */
+  .agenda{padding:0;margin-bottom:16px;overflow:hidden}
+  .agenda>.head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+  .agenda .no{font-family:var(--serif);font-weight:700;color:var(--accent-ink);font-size:14px}
+  .agenda .title{font-weight:700;font-size:14.5px;flex:1;min-width:140px}
+  .kind{font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;background:var(--accent-soft);color:var(--accent-ink)}
+  .kind.vote{background:#f6ecec;color:var(--warn)}
+  :root:not([data-theme="light"]) .kind.vote,:root[data-theme="dark"] .kind.vote{background:#2a1a18;color:var(--warn)}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kind.vote{background:#2a1a18}}
+  .decis{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;border:1px solid var(--line-strong)}
+  .decis.pass{background:var(--info-soft);color:var(--info);border-color:transparent}
+  .decis.cond{background:#fff3e0;color:var(--gold);border-color:transparent}
+  :root:not([data-theme="light"]) .decis.cond,:root[data-theme="dark"] .decis.cond{background:#2c2410}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .decis.cond{background:#2c2410}}
+  .decis.recv{background:var(--accent-soft);color:var(--accent-ink);border-color:transparent}
+  .agenda .body{padding:14px 16px}
+  .summary{font-size:13.5px;margin:0 0 12px;padding-left:12px;border-left:3px solid var(--accent-soft)}
+  .disc{font-size:12.5px}
+  .disc td:first-child{white-space:nowrap}
+  .srcline{font-variant-numeric:tabular-nums;font-size:11px;color:var(--accent-ink);background:var(--accent-soft);border:none;border-radius:5px;padding:1px 7px;cursor:pointer;font-family:var(--sans)}
+  .srcline:hover{background:var(--accent);color:#fff}
+  .votes{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;font-size:12px}
+  .votes .vb{padding:4px 10px;border-radius:7px;background:var(--panel-2);border:1px solid var(--line)}
+  .votes .vb b{font-variant-numeric:tabular-nums}
+  .note-line{font-size:12px;color:var(--muted);margin-top:10px;padding:8px 11px;background:var(--panel-2);border-radius:7px;border:1px dashed var(--line-strong)}
+
+  .btn{appearance:none;font:inherit;font-weight:500;font-size:13px;border-radius:8px;border:1px solid var(--line-strong);background:var(--panel);color:var(--ink);padding:8px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .btn:hover{border-color:var(--accent);color:var(--accent-ink)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{filter:brightness(1.08);color:#fff}
+  .btn:disabled{opacity:.5;cursor:default}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+  .hint{font-size:12px;color:var(--muted)}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px;border:1px dashed var(--line-strong);border-radius:var(--radius)}
+
+  /* findings */
+  .filterbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{appearance:none;font:inherit;font-size:12.5px;border:1px solid var(--line-strong);background:var(--panel);color:var(--muted);padding:5px 13px;border-radius:999px;cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .finding{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);align-items:flex-start}
+  .finding:last-child{border-bottom:none}
+  .finding .rule{font-family:var(--serif);font-weight:700;font-size:12.5px;min-width:30px;color:var(--muted)}
+  .finding .lvl{flex-shrink:0}
+  .lvl-warn{background:var(--warn-soft);color:var(--warn)}
+  .lvl-info{background:var(--info-soft);color:var(--info)}
+  .finding .ftxt{font-size:13px;min-width:0}
+  .finding .ftxt .tgt{font-weight:700;font-size:12px;color:var(--accent-ink);margin-right:6px}
+
+  /* speakers */
+  .spk{display:grid;grid-template-columns:auto 1fr auto;gap:10px 14px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13px}
+  .spk:last-child{border-bottom:none}
+  .spk .sid{font-family:var(--serif);font-weight:700;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:5px 11px;white-space:nowrap}
+  .spk .arrow{color:var(--muted)}
+  .spk select{font:inherit;font-size:13px;padding:6px 9px;border-radius:7px;border:1px solid var(--line-strong);background:var(--panel);color:var(--ink);max-width:100%}
+  .spk .why{font-size:11.5px;color:var(--muted);grid-column:2/3}
+  .conf{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px}
+  .conf.hi{background:var(--info-soft);color:var(--info)}
+  .conf.mid{background:#fff3e0;color:var(--gold)}
+  :root:not([data-theme="light"]) .conf.mid,:root[data-theme="dark"] .conf.mid{background:#2c2410}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .conf.mid{background:#2c2410}}
+
+  /* review / output */
+  .editgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px}
+  .fld{display:flex;flex-direction:column;gap:4px}
+  .fld label{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .fld input,.fld textarea{font:inherit;font-size:13px;padding:7px 10px;border-radius:7px;border:1px solid var(--line-strong);background:var(--panel-2);color:var(--ink)}
+  .fld textarea{resize:vertical;min-height:62px}
+  .confirmed-note{display:none;align-items:center;gap:8px;font-size:12.5px;color:var(--info);background:var(--info-soft);padding:8px 13px;border-radius:8px;margin-bottom:14px}
+
+  /* document preview (mimics the .docx 양식) */
+  .doc{font-family:var(--serif);background:#fff;color:#1a1a1a;border:1px solid var(--line-strong);border-radius:4px;box-shadow:var(--shadow);padding:clamp(20px,4vw,44px);max-width:760px;margin:0 auto;line-height:1.75}
+  :root:not([data-theme="light"]) .doc,:root[data-theme="dark"] .doc{background:#f3f1ea;color:#1a1a1a}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .doc{background:#f3f1ea;color:#1a1a1a}}
+  .doc h3{text-align:center;font-size:21px;font-weight:700;letter-spacing:.14em;margin:0 0 4px}
+  .doc .dsub{text-align:center;font-size:12.5px;color:#7a6f52;font-family:var(--sans);letter-spacing:.05em;margin-bottom:22px}
+  .doc .dmeta{width:100%;border:1px solid #cbb; font-size:12.5px;font-family:var(--sans);margin-bottom:20px}
+  .doc .dmeta th,.doc .dmeta td{border:1px solid #d8cdb0;padding:7px 10px;color:#2a2a2a}
+  .doc .dmeta th{background:#efe8d4;width:88px;font-weight:700;white-space:nowrap}
+  .doc h4{font-size:14.5px;font-weight:700;margin:20px 0 6px;padding-bottom:3px;border-bottom:1.5px solid #b9a86a}
+  .doc p{margin:5px 0;font-size:13.5px}
+  .doc .dlabel{font-family:var(--sans);font-size:11.5px;font-weight:700;color:#6b5d2f;letter-spacing:.04em}
+  .doc ul{margin:4px 0 4px;padding-left:20px;font-size:13px}
+  .doc .dtbl{width:100%;border-collapse:collapse;font-family:var(--sans);font-size:12px;margin:10px 0 4px}
+  .doc .dtbl th,.doc .dtbl td{border:1px solid #cdbf93;padding:6px 8px;color:#2a2a2a}
+  .doc .dtbl th{background:#efe8d4;font-weight:700}
+  .doc .sign{text-align:center;margin-top:30px;font-size:14px;letter-spacing:.04em}
+  .doc .sign .role{display:inline-block;margin:6px 20px;font-size:13.5px}
+
+  footer{border-top:1px solid var(--line);margin-top:10px;padding:18px 0 4px;color:var(--muted);font-size:11.5px;text-align:center;line-height:1.7}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--panel-2);padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <span class="eyebrow">금융소비자보호위원회 · 의사록 자동작성</span>
+      <h1>2026년 제9차 회의록</h1>
+      <div class="meta-row">
+        <span>일시 <b>2026. 11. 20.(금) 14:00~14:25</b></span>
+        <span>장소 <b>본사 대회의실</b></span>
+        <span>위원장 <b>한도윤</b></span>
+        <span>간사 <b>차민서</b></span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px;align-items:flex-end">
+      <button class="theme-btn" id="themeBtn" type="button">◐ 테마</button>
+      <span class="demo-flag">교육용 가상 자료 · 모의(mock) 모드</span>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="작업 단계">
+  <div class="tabs-inner" role="tablist" id="tablist"></div>
+</nav>
+
+<main class="wrap" id="panels"></main>
+
+<footer class="wrap">
+  AI 기반 의사록 자동작성 교육용 PoC — 녹취 → AI 추출 → 업무규칙(R1~R14) 검증 → 담당자 확정 → 의사록(.docx) 출력.<br>
+  모든 인물·수치·안건은 가상이며 실제 회사·위원회와 무관합니다. 실제 회사자료·개인정보·고객정보는 입력하지 마십시오.
+</footer>
+
+<script>
+/* ---------- 데이터 (더미) ---------- */
+const MEMBERS=[
+  {id:"M01",name:"한도윤",role:"위원장",dept:"금융소비자보호본부",pos:"본부장",voting:true,status:"출석"},
+  {id:"M02",name:"서지후",role:"위원",dept:"상품본부",pos:"본부장",voting:true,status:"출석"},
+  {id:"M03",name:"남궁별",role:"위원",dept:"영업기획본부",pos:"본부장",voting:true,status:"출석"},
+  {id:"M04",name:"오세린",role:"위원",dept:"GA사업본부",pos:"본부장",voting:true,status:"출석(14:16 이석)"},
+  {id:"M05",name:"윤태경",role:"위원",dept:"계약관리본부",pos:"본부장",voting:true,status:"출석"},
+  {id:"M06",name:"배하람",role:"위원",dept:"준법감시팀",pos:"준법감시인",voting:true,status:"출석"},
+  {id:"M07",name:"진유나",role:"위원",dept:"보험금심사팀",pos:"팀장",voting:true,status:"불참"},
+  {id:"S01",name:"차민서",role:"간사",dept:"소비자보호부",pos:"과장",voting:false,status:"출석(의결권 없음)"},
+];
+const NAME=id=>{const m=MEMBERS.find(x=>x.id===id);return m?m.name:id};
+const OVERVIEW={total:7,present:6,absent:1,rate:85.7,duration:25,
+  quorum:"충족 (출석 6명 > 재적 7명의 과반 3.5명)",
+  presentText:"6명 (출석률 85.7%) ※ 오세린 위원 14:16 이석, 이후 출석 5명",
+  absentText:"1명 (진유나 위원)"};
+
+const AGENDAS=[
+ {no:1,type:"보고",title:"2026년 3분기 민원 현황 보고",presenter:"소비자보호부",
+  summary:"3분기 접수 민원은 총 412건으로 전분기(449건) 대비 8.2% 감소함. 유형별 비중은 보험금 지급 46%, 불완전판매 21%, 계약 유지·관리 18%, 기타 15%이며, 보험금 지급 관련 민원 비중은 전분기 대비 5%p 증가함.",
+  discussions:[
+   {spk:"M02",name:"서지후 위원",type:"질의",content:"보험금 지급 민원 비중 증가 원인과 특정 상품 집중 여부를 질의함.",src:[7]},
+   {spk:"S01",name:"간사",type:"답변",content:"상품별 세부 분석을 진행 중이며, 실손보험 관련 서류 보완 요청 건이 다수인 것으로 1차 파악됨.",src:[8]},
+   {spk:"M01",name:"위원장",type:"요청",content:"보험금 지급 민원 증가 원인 분석 결과를 차기 위원회에 보고하도록 요청함(불참한 보험금심사팀에 간사가 전달).",src:[9]},
+  ],
+  decision:"보고접수",decisionText:"보고 접수",detail:"",note:"",
+  votes:{for:[],against:[],abstain:[]}},
+
+ {no:2,type:"보고",title:"3분기 불완전판매 모니터링(해피콜) 결과 보고",presenter:"계약관리본부",
+  summary:"3분기 해피콜 대상 2,000건 중 1,936건을 완료함(미완료율 3.2%). 불완전판매 의심 건은 18건이며, 이 중 12건이 GA 채널에서 발생함.",
+  discussions:[
+   {spk:"M04",name:"오세린 위원",type:"요청",content:"의심 건 관련 GA 대리점 명단 공유를 요청하고, 해당 대리점 교육을 즉시 진행하겠다는 의견을 밝힘.",src:[14]},
+   {spk:"M05",name:"윤태경 위원",type:"답변",content:"회의 후 GA사업본부에 대리점 명단을 별도 공유하겠다고 답변함.",src:[15]},
+   {spk:"M06",name:"배하람 위원",type:"의견",content:"의심 18건에 대해 고객 재확인 후 청약철회·계약 취소 안내가 적절히 이루어졌는지 준법감시 차원의 확인이 필요하다는 의견을 제시함.",src:[16]},
+   {spk:"M01",name:"위원장",type:"요청",content:"계약관리본부는 의심 18건의 고객 재확인 및 안내 결과를 정리하고, GA사업본부는 해당 대리점 교육을 12월 말까지 완료하도록 요청함.",src:[17]},
+  ],
+  decision:"보고접수",decisionText:"보고 접수",detail:"",note:"",
+  votes:{for:[],against:[],abstain:[]}},
+
+ {no:3,type:"의결",title:"금융소비자보호 내부통제기준 일부 개정(안)",presenter:"소비자보호부",
+  summary:"① 고령 금융소비자 대상 판매 시 확인 절차 신설, ② 민원 처리 기한 단축(14일 → 10일), ③ 제12조 판매 모니터링 주기 변경(반기 → 분기)을 주요 내용으로 함.",
+  discussions:[
+   {spk:"M06",name:"배하람 위원",type:"의견",content:"최근 감독 동향에 비추어 제12조 모니터링 주기는 월 단위가 적절하다는 의견을 제시함.",src:[20]},
+   {spk:"M03",name:"남궁별 위원",type:"의견",content:"월 단위 시행 시 현업 부담이 크므로 인력 계획을 함께 검토해야 한다는 의견을 제시함.",src:[21]},
+   {spk:"M06",name:"배하람 위원",type:"의견",content:"전수 점검 대신 표본 점검으로 운영하면 부담을 줄일 수 있다는 의견을 제시함.",src:[22]},
+   {spk:"M01",name:"위원장",type:"의견",content:"제12조를 '월 단위 표본 점검'으로 수정하는 조건으로 의결할 것을 제안함.",src:[23]},
+  ],
+  decision:"조건부가결",decisionText:"수정 조건부 가결 (출석 6명 전원 찬성)",
+  detail:"조건: 제12조 판매 모니터링 주기를 '월 단위 표본 점검'으로 수정하여 시행함.",note:"",
+  votes:{for:["M01","M02","M03","M04","M05","M06"],against:[],abstain:[]}},
+
+ {no:4,type:"의결",title:"신상품 '(가칭) 든든케어 종신보험' 소비자보호 사전점검 결과 승인",presenter:"상품본부",
+  summary:"본 상품은 2027년 1월 출시 예정이며, 소비자보호 사전점검 지적사항 5건(해지환급금 예시표 가독성 개선 등)을 모두 반영 완료함.",
+  discussions:[
+   {spk:"M06",name:"배하람 위원",type:"의견",content:"주요 판매 대상에 60세 이상 고객이 포함되어 있으나 고령자용 핵심설명서가 마련되지 않아, 보완 전에는 승인에 동의하기 어렵다는 의견을 제시함.",src:[30]},
+   {spk:"M02",name:"서지후 위원",type:"답변",content:"고령자용 핵심설명서를 출시 전까지 별도 제작하겠다고 답변함.",src:[31]},
+  ],
+  decision:"원안가결",decisionText:"원안 가결 (출석 5명 중 찬성 4명, 반대 1명)",
+  detail:"찬성: 한도윤, 서지후, 남궁별, 윤태경 / 반대: 배하람(사유: 고령자용 핵심설명서 미마련). 부대의견: 상품본부는 고령자용 핵심설명서를 2026. 12. 15.까지 마련하여 소비자보호부의 확인을 받을 것.",
+  note:"오세린 위원 이석(14:16)으로 표결 시점 출석위원은 5명이며, 의결 정족수는 충족됨.",
+  votes:{for:["M01","M02","M03","M05"],against:["M06"],abstain:[]}},
+];
+
+const FOLLOWUPS=[
+ {no:1,agenda:"제1호",task:"보험금 지급 민원 증가 원인 분석 결과 보고",owner:"보험금심사팀",due:"차기(제10차) 위원회",remark:"불참 부서, 간사 전달"},
+ {no:2,agenda:"제2호",task:"불완전판매 의심 18건 고객 재확인 및 안내 결과 정리",owner:"계약관리본부",due:"미정",remark:"기한 확인 필요"},
+ {no:3,agenda:"제2호",task:"의심 건 관련 GA 대리점 명단 공유",owner:"계약관리본부",due:"미정(회의 후)",remark:"기한 확인 필요"},
+ {no:4,agenda:"제2호",task:"해당 GA 대리점 대상 교육 실시",owner:"GA사업본부",due:"2026-12-31",remark:"'12월 말' 환산"},
+ {no:5,agenda:"제3호",task:"제12조 수정사항 반영 및 사내 공지",owner:"소비자보호부(간사)",due:"2026-11-27",remark:"'다음 주 금요일' 환산"},
+ {no:6,agenda:"제4호",task:"고령자용 핵심설명서 마련 및 소비자보호부 확인",owner:"상품본부",due:"2026-12-15",remark:""},
+];
+
+/* 녹취록 (04-1) — 발언자 매핑 결과 */
+const TRANSCRIPT=[
+ [1,"14:00:05","간사 차민서","S01","지금부터 2026년 제9차 금융소비자보호위원회를 시작하겠습니다. 재적위원 7명 중 6명이 출석하셔서 의결 정족수를 충족하였음을 보고드립니다. 진유나 위원님은 외부 일정으로 불참하셨습니다."],
+ [2,"14:00:40","위원장 한도윤","M01","네, 감사합니다. 오늘 안건은 보고안건 2건, 의결안건 2건입니다. 바로 첫 번째 안건부터 진행하겠습니다."],
+ [3,"14:01:02","위원 남궁별","M03","시작 전에 잠깐만요, 오늘 회의 끝나고 다과 준비되어 있나요? (웃음)"],
+ [4,"14:01:10","간사 차민서","S01","네, 회의실 뒤편에 준비되어 있습니다."],
+ [5,"14:01:20","위원장 한도윤","M01","제1호 보고안건, 2026년 3분기 민원 현황 보고를 소비자보호부에서 설명해 주십시오."],
+ [6,"14:01:35","간사 차민서","S01","3분기 접수 민원은 총 412건으로 전분기 449건 대비 8.2% 감소하였습니다. 유형별로는 보험금 지급 관련 46%, 불완전판매 21%, 계약 유지·관리 18%, 기타 15%입니다. 다만 보험금 지급 관련 민원은 전분기 대비 비중이 5%p 증가하였습니다."],
+ [7,"14:04:10","위원 서지후","M02","보험금 지급 민원 비중이 늘어난 원인은 파악되었습니까? 특정 상품에 집중되어 있는지 궁금합니다."],
+ [8,"14:04:40","간사 차민서","S01","현재 상품별 세부 분석을 진행 중이며, 실손보험 관련 서류 보완 요청 건이 다수인 것으로 1차 파악하였습니다."],
+ [9,"14:05:15","위원장 한도윤","M01","보험금심사팀장님이 오늘 불참하셨으니, 보험금 지급 민원 증가 원인 분석 결과를 다음 위원회에 보고하도록 간사가 전달해 주세요."],
+ [10,"14:05:30","간사 차민서","S01","네, 전달하겠습니다."],
+ [11,"14:05:40","위원장 한도윤","M01","제1호 안건은 보고 접수하겠습니다."],
+ [12,"14:06:00","위원장 한도윤","M01","제2호 보고안건, 3분기 불완전판매 모니터링 결과를 계약관리본부에서 보고해 주십시오."],
+ [13,"14:06:15","위원 윤태경","M05","3분기 해피콜 대상 2,000건 중 1,936건을 완료하여 미완료율은 3.5%… 아, 정정하겠습니다. 미완료율은 3.2%입니다. 불완전판매 의심 건은 18건이며, 이 중 12건이 GA 채널에서 발생하였습니다."],
+ [14,"14:08:30","위원 오세린","M04","GA 채널 비중이 높은데, 해당 대리점 명단을 공유받을 수 있을까요? 저희 쪽에서 대리점 교육을 바로 진행하겠습니다."],
+ [15,"14:08:55","위원 윤태경","M05","네, 회의 후 GA사업본부에 별도로 공유드리겠습니다."],
+ [16,"14:09:10","위원 배하람","M06","의심 18건에 대해서는 고객 재확인 후 청약철회나 계약 취소 안내가 적절히 이루어졌는지 준법감시 차원에서도 확인이 필요합니다."],
+ [17,"14:09:40","위원장 한도윤","M01","좋습니다. 의심 18건은 계약관리본부가 고객 재확인 및 안내 결과를 정리해 주시고, GA사업본부는 해당 대리점 대상 교육을 12월 말까지 완료해 주십시오. 제2호 안건도 보고 접수합니다."],
+ [18,"14:10:20","위원장 한도윤","M01","다음은 제3호 의결안건, 금융소비자보호 내부통제기준 일부 개정(안)입니다. 간사가 설명해 주세요."],
+ [19,"14:10:35","간사 차민서","S01","주요 개정 내용은 세 가지입니다. 첫째, 고령 금융소비자 대상 판매 시 확인 절차 신설, 둘째, 민원 처리 기한을 14일에서 10일로 단축, 셋째, 제12조 판매 모니터링 주기를 반기에서 분기로 변경하는 것입니다."],
+ [20,"14:13:00","위원 배하람","M06","제12조 모니터링 주기는 분기보다 월 단위로 하는 것이 최근 감독 동향에 비추어 적절하다고 봅니다."],
+ [21,"14:13:40","위원 남궁별","M03","월 단위로 하면 현업 부담이 상당합니다. 인력 계획도 함께 검토되어야 합니다."],
+ [22,"14:14:20","위원 배하람","M06","전수 점검이 아니라 표본 점검으로 하면 부담을 줄일 수 있습니다."],
+ [23,"14:14:50","위원장 한도윤","M01","그러면 제12조는 '월 단위 표본 점검'으로 수정하는 조건으로 의결하는 것이 어떻겠습니까? 이견 있으신 위원님 계십니까?"],
+ [24,"14:15:10","(전체)","ALL","(이견 없음)"],
+ [25,"14:15:15","위원장 한도윤","M01","출석위원 6명 전원 찬성으로 제3호 안건은 수정 조건부 가결되었습니다. 간사는 수정 사항을 반영하여 다음 주 금요일까지 사내 공지해 주기 바랍니다."],
+ [26,"14:16:00","위원 오세린","M04","위원장님, 죄송하지만 외부 일정이 있어 먼저 이석하겠습니다."],
+ [27,"14:16:20","간사 차민서","S01","오세린 위원 이석으로 출석위원은 5명이며, 의결 정족수는 계속 충족됩니다."],
+ [28,"14:17:00","위원장 한도윤","M01","제4호 의결안건, 신상품 '(가칭) 든든케어 종신보험' 소비자보호 사전점검 결과 승인 건입니다. 상품본부에서 설명해 주십시오."],
+ [29,"14:17:15","위원 서지후","M02","본 상품은 2027년 1월 출시 예정이며, 소비자보호 사전점검 결과 상품설명서의 해지환급금 예시표 가독성 개선 등 지적사항 5건을 모두 반영 완료하였습니다."],
+ [30,"14:20:30","위원 배하람","M06","주요 판매 대상에 60세 이상 고객이 포함되어 있는데, 고령자용 핵심설명서가 아직 마련되지 않았습니다. 이 부분이 보완되기 전에는 승인에 동의하기 어렵습니다."],
+ [31,"14:21:30","위원 서지후","M02","고령자용 핵심설명서는 출시 전까지 별도로 제작하겠습니다."],
+ [32,"14:22:10","위원장 한도윤","M01","표결하겠습니다. 위원님별로 찬반 의견을 말씀해 주십시오."],
+ [33,"14:22:15","위원 서지후","M02","찬성합니다."],
+ [34,"14:22:20","위원 남궁별","M03","찬성입니다."],
+ [35,"14:22:25","위원 윤태경","M05","찬성합니다."],
+ [36,"14:22:40","위원 배하람","M06","반대합니다. 앞서 말씀드린 사유 때문입니다."],
+ [37,"14:22:50","위원장 한도윤","M01","저도 찬성합니다. 출석위원 5명 중 찬성 4명, 반대 1명으로 제4호 안건은 원안 가결되었습니다. 다만 상품본부는 고령자용 핵심설명서를 12월 15일까지 마련하여 소비자보호부의 확인을 받으시기 바랍니다."],
+ [38,"14:23:30","위원장 한도윤","M01","기타 안건 있으십니까? 없으시면 이상으로 2026년 제9차 금융소비자보호위원회를 마치겠습니다. 수고 많으셨습니다."],
+];
+
+/* 업무규칙(R1~R14) 검증 결과 — 모의 데이터에 rules.validate() 적용 결과 */
+const FINDINGS=[
+ {rule:"R1",level:"정보",tgt:"개회 정족수",msg:"출석 6명 / 재적 7명 (기준: 3.5명 초과) → 충족"},
+ {rule:"R13",level:"정보",tgt:"기본 통계",msg:"출석률 85.7%, 회의 소요시간 25분"},
+ {rule:"R2",level:"정보",tgt:"제3호",msg:"표결 시점 출석 6명 중 찬성 6·반대 0·기권 0 → 판정 일치"},
+ {rule:"R2",level:"정보",tgt:"제4호",msg:"표결 시점 출석 5명 중 찬성 4·반대 1·기권 0 → 판정 일치 (오세린 위원 이석 반영)"},
+ {rule:"R9",level:"경고",tgt:"제2호 후속조치 2: 불완전판매 의심 18건…",msg:"기한 확인 필요 — 회의에서 기한이 정해지지 않았습니다. (due: 미정)"},
+ {rule:"R9",level:"경고",tgt:"제2호 후속조치 3: 의심 건 관련 GA 대리점 명단…",msg:"기한 확인 필요 — 회의에서 기한이 정해지지 않았습니다. (due: 미정(회의 후))"},
+];
+
+/* 화자 매핑 제안 (04-2 화자번호형 → 위원명단) */
+const SPEAKER_SUGGEST=[
+ {sid:"화자1",member:"S01",conf:"hi", why:"개회 선언·보고 설명·정족수 보고 → 간사(차민서) 역할과 일치"},
+ {sid:"화자2",member:"M01",conf:"hi", why:"의사진행·안건 상정·표결 선언 → 위원장(한도윤)"},
+ {sid:"화자3",member:"M03",conf:"mid",why:"영업기획본부 위원 발언 패턴과 유사 (남궁별)"},
+ {sid:"화자4",member:"M02",conf:"mid",why:"상품 관련 질의 → 상품본부 위원(서지후)으로 추정"},
+ {sid:"화자5",member:"M05",conf:"hi", why:"해피콜 보고·GA 공유 답변 → 계약관리본부(윤태경)"},
+ {sid:"화자6",member:"M04",conf:"hi", why:"GA 대리점 교육 언급 → GA사업본부(오세린)"},
+ {sid:"화자7",member:"M06",conf:"hi", why:"준법감시 차원 확인 발언 → 준법감시인(배하람)"},
+];
+
+/* ---------- 상태 ---------- */
+const S={extracted:false,confirmed:false,findingFilter:"all",tab:"overview",
+  edit:{session:"2026년 제9차",datetime:"2026. 11. 20.(금) 14:00 ~ 14:25 (25분)",location:"본사 대회의실"}};
+
+/* ---------- 유틸 ---------- */
+const E=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e};
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const typeClass=t=>({"질의":"type-q","답변":"type-a","의견":"type-op","요청":"type-req"}[t]||"type-q");
+const statusBadge=s=>{
+  if(s.startsWith("불참"))return`<span class="badge st-absent">${esc(s)}</span>`;
+  if(s.includes("이석"))return`<span class="badge st-leave">${esc(s)}</span>`;
+  if(s.includes("의결권 없음"))return`<span class="badge st-none">${esc(s)}</span>`;
+  return`<span class="badge st-present">${esc(s)}</span>`;
+};
+function flashLine(n){
+  goTab("overview");
+  setTimeout(()=>{
+    const row=document.getElementById("tline-"+n);
+    if(row){row.scrollIntoView({behavior:"smooth",block:"center"});
+      row.style.transition="background .2s";const o=row.style.background;
+      row.style.background="var(--accent-soft)";
+      setTimeout(()=>{row.style.background=o||""},1400);}
+  },60);
+}
+
+/* ---------- 탭 정의 ---------- */
+const TABS=[
+ {id:"overview",n:"1",label:"회의 개요"},
+ {id:"extract",n:"2",label:"AI 추출"},
+ {id:"rules",n:"3",label:"규칙 검증",pill:"경고 2"},
+ {id:"review",n:"4",label:"검토·출력"},
+ {id:"speakers",n:"5",label:"화자 매핑"},
+];
+
+function buildTabs(){
+  const tl=document.getElementById("tablist");tl.innerHTML="";
+  TABS.forEach(t=>{
+    const b=E("button","tab");b.id="tab-"+t.id;b.setAttribute("role","tab");
+    b.setAttribute("aria-selected",t.id===S.tab);b.setAttribute("aria-controls","panel-"+t.id);
+    b.innerHTML=`<span class="n">${t.n}</span>${t.label}`+(t.pill?`<span class="pill">${t.pill}</span>`:"");
+    b.onclick=()=>goTab(t.id);
+    tl.appendChild(b);
+  });
+}
+function goTab(id){
+  S.tab=id;
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-selected",b.id==="tab-"+id));
+  document.querySelectorAll('[role=tabpanel]').forEach(p=>p.hidden=p.id!=="panel-"+id);
+  try{location.hash=id}catch(e){}
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* ---------- 패널: ① 회의 개요 ---------- */
+function panelOverview(){
+  const p=E("section");p.id="panel-overview";p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","tab-overview");
+  p.innerHTML=`<p class="lead">재적·출석·정족수를 확인하고, 녹취록이 위원명단과 바르게 매핑되었는지 점검합니다. <span class="hint">(FR-01~04 · R1·R11·R13)</span></p>`;
+
+  const stats=E("div","grid stat-row");
+  stats.innerHTML=`
+   <div class="card stat"><div class="k">재적위원</div><div class="v">${OVERVIEW.total}<small> 명</small></div></div>
+   <div class="card stat ok"><div class="k">출석</div><div class="v">${OVERVIEW.present}<small> 명 · ${OVERVIEW.rate}%</small></div></div>
+   <div class="card stat"><div class="k">불참</div><div class="v">${OVERVIEW.absent}<small> 명</small></div></div>
+   <div class="card stat ok"><div class="k">의결 정족수</div><div class="v" style="font-size:16px;line-height:1.4">충족</div></div>`;
+  p.appendChild(stats);
+
+  const q=E("div","card");q.style.cssText="padding:13px 16px;margin-top:14px;font-size:13px";
+  q.innerHTML=`<b style="color:var(--info)">✓ ${esc(OVERVIEW.quorum)}</b><br>
+   <span class="hint">출석: ${esc(OVERVIEW.presentText)}</span><br>
+   <span class="hint">불참: ${esc(OVERVIEW.absentText)}</span>`;
+  p.appendChild(q);
+
+  p.appendChild(E("h2","sec",null)).textContent="위원 명단 및 출결";
+  const mw=E("div","tbl-wrap");
+  let rows=MEMBERS.map(m=>`<tr>
+     <td class="num">${esc(m.id)}</td><td><b>${esc(m.name)}</b></td>
+     <td>${esc(m.role)}</td><td>${esc(m.dept)}</td><td>${esc(m.pos)}</td>
+     <td>${m.voting?'의결권':'<span class="hint">—</span>'}</td>
+     <td>${statusBadge(m.status)}</td></tr>`).join("");
+  mw.innerHTML=`<table><thead><tr><th>ID</th><th>성명</th><th>직위</th><th>부서</th><th>직책</th><th>표결</th><th>출결</th></tr></thead><tbody>${rows}</tbody></table>`;
+  p.appendChild(mw);
+
+  const h=E("h2","sec",null);h.textContent="녹취록 파싱 결과";p.appendChild(h);
+  p.appendChild(E("p","lead","총 "+TRANSCRIPT.length+"개 발언 · 매핑 실패 0줄. 안건 추출에서 참조하는 원문 줄번호를 그대로 확인할 수 있습니다."));
+  const tw=E("div","tbl-wrap");tw.style.maxHeight="420px";tw.style.overflowY="auto";
+  let tr=TRANSCRIPT.map(([n,time,label,sid,text])=>`<tr id="tline-${n}">
+     <td class="num"><b>${n}</b></td><td class="num">${esc(time)}</td>
+     <td style="white-space:nowrap">${esc(label)} ${sid==="ALL"?'<span class="hint">(전체)</span>':'<span class="hint">'+esc(sid)+'</span>'}</td>
+     <td>${esc(text)}</td></tr>`).join("");
+  tw.innerHTML=`<table class="disc"><thead><tr><th>#</th><th>시각</th><th>발언자</th><th>발언 내용</th></tr></thead><tbody>${tr}</tbody></table>`;
+  p.appendChild(tw);
+  return p;
+}
+
+/* ---------- 패널: ② AI 추출 ---------- */
+function panelExtract(){
+  const p=E("section");p.id="panel-extract";p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","tab-extract");
+  p.innerHTML=`<p class="lead">녹취록에서 안건별 <b>요지·발언·처리 결과·후속조치</b>를 구조화합니다. API 키가 없으면 정답데이터를 사용하는 <b>모의 모드</b>로 동작하며, 화면·검증·출력 흐름은 AI 모드와 동일합니다. <span class="hint">(FR-05·06 · R6·R10)</span></p>`;
+
+  const bar=E("div","toolbar");
+  bar.innerHTML=`<button class="btn primary" id="runBtn">⟳ 모의 결과 불러오기</button>
+    <span class="hint" id="extractHint">아직 추출 전입니다. 버튼을 눌러 안건별 결과를 생성하세요.</span>`;
+  p.appendChild(bar);
+
+  const holder=E("div");holder.id="agendaHolder";
+  holder.innerHTML=`<div class="empty">추출 결과가 여기에 표시됩니다.<br>상단의 <b>[모의 결과 불러오기]</b>를 누르면 4개 안건이 채워집니다.</div>`;
+  p.appendChild(holder);
+
+  setTimeout(()=>{
+    const btn=document.getElementById("runBtn");
+    if(btn)btn.onclick=()=>{S.extracted=true;renderAgendas();syncBadges();
+      document.getElementById("extractHint").innerHTML='<span style="color:var(--info)">✓ 모의 추출 완료 — 4개 안건, '+FINDINGS.length+'개 검증 항목.</span>';};
+    if(S.extracted)renderAgendas();
+  },0);
+  return p;
+}
+function renderAgendas(){
+  const holder=document.getElementById("agendaHolder");if(!holder)return;
+  holder.innerHTML="";
+  AGENDAS.forEach(a=>{
+    const card=E("div","card agenda");
+    const dcls=a.decision.includes("조건")?"cond":(a.type==="보고"?"recv":"pass");
+    let disc=a.discussions.map((d,i)=>`<tr>
+       <td><span class="badge ${typeClass(d.type)}">${esc(d.type)}</span></td>
+       <td style="white-space:nowrap"><b>${esc(d.name)}</b></td>
+       <td>${esc(d.content)} ${d.src.map(s=>`<button class="srcline" data-line="${s}">#${s}</button>`).join(" ")}</td>
+      </tr>`).join("");
+    let votesHtml="";
+    if(a.type==="의결"){
+      votesHtml=`<div class="votes">
+        <span class="vb">찬성 <b>${a.votes.for.length}</b> <span class="hint">${a.votes.for.map(NAME).join(", ")}</span></span>
+        <span class="vb">반대 <b>${a.votes.against.length}</b> <span class="hint">${a.votes.against.map(NAME).join(", ")||"—"}</span></span>
+        <span class="vb">기권 <b>${a.votes.abstain.length}</b></span></div>`;
+    }
+    card.innerHTML=`
+      <div class="head">
+        <span class="no">제${a.no}호</span>
+        <span class="kind ${a.type==='의결'?'vote':''}">${esc(a.type)}</span>
+        <span class="title">${esc(a.title)}</span>
+        <span class="decis ${dcls}">${esc(a.decisionText)}</span>
+      </div>
+      <div class="body">
+        <p class="summary">${esc(a.summary)}</p>
+        <div class="tbl-wrap"><table class="disc"><thead><tr><th>유형</th><th>발언자</th><th>내용 · 근거</th></tr></thead><tbody>${disc}</tbody></table></div>
+        ${votesHtml}
+        ${a.detail?`<div class="note-line">▸ ${esc(a.detail)}</div>`:""}
+        ${a.note?`<div class="note-line">ℹ ${esc(a.note)}</div>`:""}
+      </div>`;
+    holder.appendChild(card);
+  });
+  holder.querySelectorAll(".srcline").forEach(b=>b.onclick=()=>flashLine(b.dataset.line));
+}
+
+/* ---------- 패널: ③ 규칙 검증 ---------- */
+function panelRules(){
+  const p=E("section");p.id="panel-rules";p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","tab-rules");
+  const warn=FINDINGS.filter(f=>f.level==="경고").length, info=FINDINGS.length-warn;
+  p.innerHTML=`<p class="lead">AI 결과를 그대로 믿지 않고 업무규칙 <b>R1~R14</b>로 교차검증합니다. 담당자는 경고 항목을 확인한 뒤 ④에서 수정·확정합니다. <span class="hint">(FR-07)</span></p>`;
+
+  const stats=E("div","grid stat-row");
+  stats.innerHTML=`
+    <div class="card stat"><div class="k">경고</div><div class="v" style="color:var(--warn)">${warn}<small> 건</small></div></div>
+    <div class="card stat"><div class="k">정보</div><div class="v" style="color:var(--info)">${info}<small> 건</small></div></div>
+    <div class="card stat"><div class="k">기한 미정 후속조치</div><div class="v" style="color:var(--warn)">${FINDINGS.filter(f=>f.rule==="R9").length}<small> 건</small></div></div>`;
+  p.appendChild(stats);
+
+  const fb=E("div","filterbar");fb.style.marginTop="16px";
+  [["all","전체"],["경고","경고만"],["정보","정보만"]].forEach(([k,lbl])=>{
+    const c=E("button","chip");c.textContent=lbl;c.setAttribute("aria-pressed",S.findingFilter===k);
+    c.onclick=()=>{S.findingFilter=k;renderFindings();fb.querySelectorAll(".chip").forEach((x,i)=>x.setAttribute("aria-pressed",["all","경고","정보"][i]===k));};
+    fb.appendChild(c);
+  });
+  p.appendChild(fb);
+
+  const list=E("div","card");list.id="findingList";p.appendChild(list);
+
+  const legend=E("p","hint");legend.style.marginTop="14px";
+  legend.innerHTML="R1 정족수 · R2 의결요건 · R3 이석반영 · R4 표결합계 · R5 안건유형별 결과 · R6 발언분류 · R7 정정발언 · R8 상대날짜 환산 · R9 후속조치 완결성 · R10 원문근거 · R11 발언자 매핑 · R12 출석이상 · R13 기본통계 · R14 담당자 확정";
+  p.appendChild(legend);
+
+  setTimeout(renderFindings,0);
+  return p;
+}
+function renderFindings(){
+  const list=document.getElementById("findingList");if(!list)return;
+  const items=FINDINGS.filter(f=>S.findingFilter==="all"||f.level===S.findingFilter);
+  if(!items.length){list.innerHTML='<div class="empty">해당 항목이 없습니다.</div>';return;}
+  list.innerHTML=items.map(f=>`
+    <div class="finding">
+      <span class="rule">${esc(f.rule)}</span>
+      <span class="badge lvl ${f.level==="경고"?"lvl-warn":"lvl-info"}">${esc(f.level)}</span>
+      <span class="ftxt"><span class="tgt">${esc(f.tgt)}</span>${esc(f.msg)}</span>
+    </div>`).join("");
+}
+
+/* ---------- 패널: ④ 검토·출력 ---------- */
+function panelReview(){
+  const p=E("section");p.id="panel-review";p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","tab-review");
+  p.innerHTML=`<p class="lead">머리말 항목을 확인·수정하고 <b>확정</b>하면 의사록 양식(.docx)과 같은 구조의 문서가 완성됩니다. 정답 예시와 동일한 형식입니다. <span class="hint">(FR-08~11 · R14)</span></p>`;
+
+  const eg=E("div","editgrid");
+  eg.innerHTML=`
+    <div class="fld"><label for="f-session">차수</label><input id="f-session" value="${esc(S.edit.session)}"></div>
+    <div class="fld"><label for="f-datetime">일시</label><input id="f-datetime" value="${esc(S.edit.datetime)}"></div>
+    <div class="fld"><label for="f-location">장소</label><input id="f-location" value="${esc(S.edit.location)}"></div>`;
+  p.appendChild(eg);
+
+  const bar=E("div","toolbar");
+  bar.innerHTML=`<button class="btn primary" id="confirmBtn">✓ 담당자 확정 (R14)</button>
+    <button class="btn" id="copyBtn" disabled>본문 복사</button>
+    <span class="hint">확정 전에는 '초안', 확정 후에는 '확정' 문서로 표시됩니다.</span>`;
+  p.appendChild(bar);
+
+  const note=E("div","confirmed-note");note.id="confirmedNote";
+  note.innerHTML="✓ 담당자 확정 완료 — 확정본(.docx) 발행 가능 상태입니다.";
+  p.appendChild(note);
+
+  const docWrap=E("div");docWrap.id="docWrap";p.appendChild(docWrap);
+
+  setTimeout(()=>{
+    ["session","datetime","location"].forEach(k=>{
+      const el=document.getElementById("f-"+k);
+      if(el)el.oninput=()=>{S.edit[k]=el.value;renderDoc();};
+    });
+    const cb=document.getElementById("confirmBtn");
+    if(cb)cb.onclick=()=>{S.confirmed=!S.confirmed;
+      cb.textContent=S.confirmed?"↺ 확정 취소":"✓ 담당자 확정 (R14)";
+      cb.classList.toggle("primary",!S.confirmed);
+      document.getElementById("confirmedNote").style.display=S.confirmed?"flex":"none";
+      document.getElementById("copyBtn").disabled=!S.confirmed;
+      renderDoc();};
+    const cpy=document.getElementById("copyBtn");
+    if(cpy)cpy.onclick=()=>copyDoc(cpy);
+    renderDoc();
+  },0);
+  return p;
+}
+function renderDoc(){
+  const w=document.getElementById("docWrap");if(!w)return;
+  const mark=S.confirmed?"확정":"초안";
+  const markColor=S.confirmed?"var(--info)":"var(--gold)";
+  let agendaBlocks=AGENDAS.map(a=>{
+    const disc=a.discussions.map(d=>`<li><b>${esc(d.name)} (${esc(d.type)})</b> ${esc(d.content)}</li>`).join("");
+    let result=a.decisionText;
+    if(a.detail)result+="<br>"+esc(a.detail);
+    return `<h4>제${a.no}호 안건 [${esc(a.type)}] ${esc(a.title)}</h4>
+      <p><span class="dlabel">제안</span> ${esc(a.presenter)}</p>
+      <p><span class="dlabel">요지</span> ${esc(a.summary)}</p>
+      <p><span class="dlabel">주요 발언</span></p><ul>${disc}</ul>
+      <p><span class="dlabel">처리 결과</span> ${result}</p>
+      ${a.note?`<p class="dlabel" style="color:#8a6d2f">※ ${esc(a.note)}</p>`:""}`;
+  }).join("");
+  let fuRows=FOLLOWUPS.map(f=>`<tr><td class="num">${f.no}</td><td>${esc(f.agenda)}</td><td>${esc(f.task)}</td><td>${esc(f.owner)}</td><td>${esc(f.due)}</td><td>${esc(f.remark||"—")}</td></tr>`).join("");
+  w.innerHTML=`<div class="doc" id="minutesDoc">
+    <h3>금융소비자보호위원회 회의록</h3>
+    <div class="dsub">［${mark}］ 교육용 가상 자료 — <span style="color:${markColor};font-weight:700">${mark}</span></div>
+    <table class="dmeta"><tbody>
+      <tr><th>차수</th><td>${esc(S.edit.session)}</td><th>장소</th><td>${esc(S.edit.location)}</td></tr>
+      <tr><th>일시</th><td colspan="3">${esc(S.edit.datetime)}</td></tr>
+      <tr><th>위원장</th><td>한도윤</td><th>간사</th><td>차민서</td></tr>
+      <tr><th>출석</th><td colspan="3">${esc(OVERVIEW.presentText)} / 불참 ${esc(OVERVIEW.absentText)}</td></tr>
+      <tr><th>정족수</th><td colspan="3">${esc(OVERVIEW.quorum)}</td></tr>
+    </tbody></table>
+    ${agendaBlocks}
+    <h4>후속조치 이행 관리</h4>
+    <table class="dtbl"><thead><tr><th>No</th><th>안건</th><th>조치 사항</th><th>담당</th><th>기한</th><th>비고</th></tr></thead><tbody>${fuRows}</tbody></table>
+    <div class="sign">위 회의 내용이 사실과 다름없음을 확인함.<br><br>2026년 11월 20일<br>
+      <span class="role">위원장 &nbsp; 한&nbsp;도&nbsp;윤 (인)</span>
+      <span class="role">간사 &nbsp; 차&nbsp;민&nbsp;서 (인)</span></div>
+  </div>`;
+}
+function copyDoc(btn){
+  const doc=document.getElementById("minutesDoc");if(!doc)return;
+  const text=doc.innerText;
+  const done=ok=>{const o=btn.textContent;btn.textContent=ok?"✓ 복사됨":"선택하세요";setTimeout(()=>btn.textContent=o,1600);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>done(true)).catch(()=>selectEl(doc,done));
+  }else selectEl(doc,done);
+}
+function selectEl(el,cb){try{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);cb(false);}catch(e){cb(false);}}
+
+/* ---------- 패널: ⑤ 화자 매핑 ---------- */
+function panelSpeakers(){
+  const p=E("section");p.id="panel-speakers";p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","tab-speakers");
+  p.innerHTML=`<p class="lead">'화자1, 화자2…'로만 표시된 STT 녹취록(04-2)의 화자를 위원명단에 매핑합니다. 발언 패턴으로 후보를 제안하면 담당자가 확정합니다. <span class="hint">(FR-13 · 확장 과제)</span></p>`;
+
+  const bar=E("div","toolbar");
+  bar.innerHTML=`<button class="btn primary" id="applyMapBtn">✓ 제안 일괄 적용</button>
+    <span class="hint" id="mapHint">7명의 화자에 대한 매핑 제안입니다. 드롭다운에서 직접 바꿀 수 있습니다.</span>`;
+  p.appendChild(bar);
+
+  const card=E("div","card");card.id="spkCard";
+  card.innerHTML=SPEAKER_SUGGEST.map((s,i)=>{
+    const opts=MEMBERS.map(m=>`<option value="${m.id}" ${m.id===s.member?"selected":""}>${esc(m.name)} (${esc(m.role==="간사"?"간사":m.dept)})</option>`).join("");
+    return `<div class="spk">
+      <span class="sid">${esc(s.sid)}</span>
+      <select id="spk-${i}" aria-label="${esc(s.sid)} 매핑">${opts}</select>
+      <span class="conf ${s.conf}">${s.conf==="hi"?"신뢰 높음":"확인 권장"}</span>
+      <span class="why">↳ ${esc(s.why)}</span>
+    </div>`;
+  }).join("");
+  p.appendChild(card);
+
+  setTimeout(()=>{
+    const b=document.getElementById("applyMapBtn");
+    if(b)b.onclick=()=>{document.getElementById("mapHint").innerHTML='<span style="color:var(--info)">✓ 7명 매핑 적용 완료 — 이제 녹취록이 위원명단과 연결되어 AI 추출을 진행할 수 있습니다.</span>';};
+  },0);
+  return p;
+}
+
+/* ---------- 조립 ---------- */
+function syncBadges(){
+  const t=document.getElementById("tab-rules");
+  if(t&&!t.querySelector(".pill")){/* keep */}
+}
+function build(){
+  buildTabs();
+  const panels=document.getElementById("panels");
+  panels.appendChild(panelOverview());
+  panels.appendChild(panelExtract());
+  panels.appendChild(panelRules());
+  panels.appendChild(panelReview());
+  panels.appendChild(panelSpeakers());
+  let start="overview";
+  try{const h=location.hash.replace("#","");if(TABS.some(t=>t.id===h))start=h;}catch(e){}
+  goTab(start);
+}
+
+/* 테마 토글 */
+document.getElementById("themeBtn").onclick=()=>{
+  const r=document.documentElement;
+  const cur=r.getAttribute("data-theme");
+  const dark=cur?cur==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  r.setAttribute("data-theme",dark?"light":"dark");
+};
+
+build();
+</script>
+
+</body>
+</html>
